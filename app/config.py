@@ -12,7 +12,7 @@ class Settings(BaseSettings):
     )
 
     @property
-    def db_url(self):
+    def get_db_url(self):
         return f"sqlite+aiosqlite:///{self.DB_NAME}"
 
     @property
