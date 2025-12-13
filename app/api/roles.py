@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 
-from app.api.dependencies import DBDep
+from app.api.dependencies import DBDep, IsAdminDep
 from app.exceptions.roles import (
     RoleAlreadyExistsError,
     RoleAlreadyExistsHTTPError,
@@ -11,7 +11,7 @@ from app.schemes.roles import SRoleAdd, SRoleGet
 from app.schemes.relations_users_roles import SRoleGetWithRels
 from app.services.roles import RoleService
 
-router = APIRouter(prefix="/auth", tags=["Управление ролями"])
+router = APIRouter(prefix="/admin", tags=["Управление ролями"])
 
 
 @router.post("/roles", summary="Создание новой роли")
@@ -29,6 +29,7 @@ async def create_new_role(
 @router.get("/roles", summary="Получение списка ролей")
 async def get_all_roles(
     db: DBDep,
+    is_admin: IsAdminDep,
 ) -> list[SRoleGet]:
     return await RoleService(db).get_roles()
 
@@ -37,6 +38,7 @@ async def get_all_roles(
 async def get_role(
     db: DBDep,
     id: int,
+    is_admin: IsAdminDep,
 ) -> SRoleGetWithRels:
     return await RoleService(db).get_role(role_id=id)
 
@@ -44,6 +46,7 @@ async def get_role(
 @router.put("/roles/{id}", summary="Изменение конкретной роли")
 async def get_role(
     db: DBDep,
+    is_admin: IsAdminDep,
     role_data: SRoleAdd,
     id: int,
 ) -> dict[str, str]:
@@ -58,6 +61,7 @@ async def get_role(
 @router.delete("/roles/{id}", summary="Удаление конкретной роли")
 async def delete_role(
     db: DBDep,
+    is_admin: IsAdminDep,
     id: int,
 ) -> dict[str, str]:
     try:

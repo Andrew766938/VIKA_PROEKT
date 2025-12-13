@@ -40,6 +40,9 @@ class UserAlreadyExistsHTTPError(MyAppHTTPError):
     status_code = 409
     detail = "Пользователь с таким email уже существует"
 
+class IsNotAdminHTTPError(MyAppHTTPError):
+    status_code = 403
+    detail = "Недостаточно прав"
 
 class UserNotFoundHTTPError(MyAppHTTPError):
     status_code = 401
