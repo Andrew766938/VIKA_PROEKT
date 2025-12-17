@@ -82,20 +82,31 @@ async function handleLogin() {
             document.getElementById('userRole').textContent = getRoleText(data.role);
 
             const ordersMenuBtn = Array.from(document.querySelectorAll('.menu-btn')).find(btn => btn.getAttribute('data-tab') === 'ordersTab');
+            const tablesMenuBtn = Array.from(document.querySelectorAll('.menu-btn')).find(btn => btn.getAttribute('data-tab') === 'tablesManageTab');
+            const menuManageBtn = Array.from(document.querySelectorAll('.menu-btn')).find(btn => btn.getAttribute('data-tab') === 'menuManageTab');
             const cartBtn = document.getElementById('cartMenuBtn');
             const employeesBtn = document.getElementById('employeesMenuBtn');
             
             if (data.role === 'admin') {
-                if (ordersMenuBtn) ordersMenuBtn.classList.remove('hidden');
+                // Админ: Меню, Сотрудники, Управление столами, Управление меню
+                if (ordersMenuBtn) ordersMenuBtn.classList.add('hidden');
+                if (tablesMenuBtn) tablesMenuBtn.classList.remove('hidden');
+                if (menuManageBtn) menuManageBtn.classList.remove('hidden');
                 employeesBtn.classList.remove('hidden');
                 document.getElementById('statEmployeeCard').classList.remove('hidden');
                 cartBtn.classList.add('hidden');
             } else if (data.role === 'waiter') {
+                // Официант: Меню, Столы, Заказы
                 if (ordersMenuBtn) ordersMenuBtn.classList.remove('hidden');
+                if (tablesMenuBtn) tablesMenuBtn.classList.add('hidden');
+                if (menuManageBtn) menuManageBtn.classList.add('hidden');
                 employeesBtn.classList.add('hidden');
                 cartBtn.classList.add('hidden');
             } else if (data.role === 'user') {
+                // Пользователь: Меню, Столы, Мой заказ
                 if (ordersMenuBtn) ordersMenuBtn.classList.add('hidden');
+                if (tablesMenuBtn) tablesMenuBtn.classList.add('hidden');
+                if (menuManageBtn) menuManageBtn.classList.add('hidden');
                 employeesBtn.classList.add('hidden');
                 cartBtn.classList.remove('hidden');
             }
@@ -103,7 +114,7 @@ async function handleLogin() {
             loadMenuItems();
             loadTables();
             
-            if (data.role !== 'user') {
+            if (data.role === 'waiter') {
                 loadOrders();
             }
             
@@ -167,6 +178,10 @@ function handleTabSwitch(btn) {
         loadCart();
     } else if (tabName === 'employeesTab') {
         loadEmployees();
+    } else if (tabName === 'tablesManageTab') {
+        loadTablesForManagement();
+    } else if (tabName === 'menuManageTab') {
+        loadMenuForManagement();
     }
 }
 
@@ -216,7 +231,7 @@ async function loadMenuItems() {
         document.getElementById('statOrders').textContent = items.length;
     } catch (error) {
         console.error('Error loading menu:', error);
-        document.getElementById('menuContent').innerHTML = '<p style="color: red;">❌ Ошибка загрузки меню</p>';
+        document.getElementById('menuContent').innerHTML = '<p style="color: red;">❌ Ошибка загружки меню</p>';
     }
 }
 
@@ -244,6 +259,197 @@ function addToCartById(itemId) {
 
     updateCartBadge();
     alert(`✅ "${menuItem.name}" добавлено в мой заказ!`);
+}
+
+// ADMIN: Управление МЕНЮ
+async function loadMenuForManagement() {
+    try {
+        const response = await fetch(`${API_URL}/api/menu/`);
+        const items = await response.json();
+        
+        const menuManageContent = document.getElementById('menuManageContent');
+        menuManageContent.innerHTML = '';
+        
+        if (items.length === 0) {
+            menuManageContent.innerHTML = '<p style="text-align: center; color: #999;">Нет блюд</p>';
+        } else {
+            items.forEach(item => {
+                const itemEl = document.createElement('div');
+                itemEl.className = 'item';
+                itemEl.innerHTML = `
+                    <div class="name">${item.name}</div>
+                    <div class="desc">${item.description}</div>
+                    <div class="meta">₽${item.price} | ${item.category}</div>
+                    <button class="btn btn-danger" style="width: 100%; margin-top: 10px; font-size: 12px; padding: 8px;" onclick="deleteMenuItem(${item.id})">🗑️ Удалить</button>
+                `;
+                menuManageContent.appendChild(itemEl);
+            });
+        }
+    } catch (error) {
+        console.error('Error loading menu for management:', error);
+    }
+}
+
+function openAddMenuItemModal() {
+    document.getElementById('addMenuItemForm').reset();
+    document.getElementById('addMenuItemModal').classList.remove('hidden');
+}
+
+function closeAddMenuItemModal() {
+    document.getElementById('addMenuItemModal').classList.add('hidden');
+}
+
+async function saveMenuItem() {
+    const name = document.getElementById('itemName').value;
+    const description = document.getElementById('itemDescription').value;
+    const price = parseFloat(document.getElementById('itemPrice').value);
+    const category = document.getElementById('itemCategory').value;
+    
+    if (!name || !price || !category) {
+        alert('❌ Пожалуйста, заполните обязательные поля');
+        return;
+    }
+    
+    try {
+        const response = await fetch(`${API_URL}/api/menu/`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                name,
+                description: description || '',
+                price,
+                category
+            })
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            alert('❌ Ошибка: ' + (errorData.detail || 'Неизвестная ошибка'));
+            return;
+        }
+
+        const item = await response.json();
+        alert(`✅ Блюдо "${item.name}" добавлено`);
+        closeAddMenuItemModal();
+        loadMenuForManagement();
+        loadMenuItems();
+    } catch (error) {
+        console.error('Error saving menu item:', error);
+        alert('❌ Ошибка: ' + error.message);
+    }
+}
+
+async function deleteMenuItem(itemId) {
+    if (!confirm('⚠️ Уверены?')) return;
+    
+    try {
+        const response = await fetch(`${API_URL}/api/menu/${itemId}`, {
+            method: 'DELETE'
+        });
+
+        if (!response.ok) throw new Error('Ошибка удаления');
+        
+        alert('✅ Блюдо удалено');
+        loadMenuForManagement();
+        loadMenuItems();
+    } catch (error) {
+        console.error('Error deleting menu item:', error);
+        alert('❌ Ошибка: ' + error.message);
+    }
+}
+
+// ADMIN: Управление СТОЛАМИ
+async function loadTablesForManagement() {
+    try {
+        const response = await fetch(`${API_URL}/api/tables/`);
+        const tables = await response.json();
+        
+        const tablesManageContent = document.getElementById('tablesManageContent');
+        tablesManageContent.innerHTML = '';
+        
+        if (tables.length === 0) {
+            tablesManageContent.innerHTML = '<p style="text-align: center; color: #999;">Нет столов</p>';
+        } else {
+            tables.forEach(table => {
+                const tableEl = document.createElement('div');
+                tableEl.className = 'item';
+                tableEl.style.borderTop = table.is_occupied ? '4px solid #e74c3c' : '4px solid #2ecc71';
+                tableEl.innerHTML = `
+                    <div class="name">Стол №${table.table_number}</div>
+                    <div class="desc">Мест: ${table.seats}</div>
+                    <div class="meta" style="color: ${table.is_occupied ? '#e74c3c' : '#2ecc71'};">${table.is_occupied ? '🔴 Занят' : '🟢 Свободен'}</div>
+                    <button class="btn btn-danger" style="width: 100%; margin-top: 10px; font-size: 12px; padding: 8px;" onclick="deleteTable(${table.id})">🗑️ Удалить</button>
+                `;
+                tablesManageContent.appendChild(tableEl);
+            });
+        }
+    } catch (error) {
+        console.error('Error loading tables for management:', error);
+    }
+}
+
+function openAddTableModal() {
+    document.getElementById('addTableForm').reset();
+    document.getElementById('addTableModal').classList.remove('hidden');
+}
+
+function closeAddTableModal() {
+    document.getElementById('addTableModal').classList.add('hidden');
+}
+
+async function saveTable() {
+    const tableNumber = parseInt(document.getElementById('tableNumber').value);
+    const seats = parseInt(document.getElementById('tableSeats').value);
+    
+    if (!tableNumber || !seats || seats < 1) {
+        alert('❌ Пожалуйста, введите корректные данные');
+        return;
+    }
+    
+    try {
+        const response = await fetch(`${API_URL}/api/tables/`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                table_number: tableNumber,
+                seats: seats
+            })
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            alert('❌ Ошибка: ' + (errorData.detail || 'Неизвестная ошибка'));
+            return;
+        }
+
+        const table = await response.json();
+        alert(`✅ Стол №${table.table_number} добавлен`);
+        closeAddTableModal();
+        loadTablesForManagement();
+        loadTables();
+    } catch (error) {
+        console.error('Error saving table:', error);
+        alert('❌ Ошибка: ' + error.message);
+    }
+}
+
+async function deleteTable(tableId) {
+    if (!confirm('⚠️ Уверены?')) return;
+    
+    try {
+        const response = await fetch(`${API_URL}/api/tables/${tableId}`, {
+            method: 'DELETE'
+        });
+
+        if (!response.ok) throw new Error('Ошибка удаления');
+        
+        alert('✅ Стол удален');
+        loadTablesForManagement();
+        loadTables();
+    } catch (error) {
+        console.error('Error deleting table:', error);
+        alert('❌ Ошибка: ' + error.message);
+    }
 }
 
 // Tables
@@ -559,7 +765,7 @@ async function loadEmployees() {
         const response = await fetch(`${API_URL}/api/employees/`);
         
         if (!response.ok) {
-            throw new Error(`Ошибка загрузки сотрудников: ${response.status}`);
+            throw new Error(`Ошибка загружки сотрудников: ${response.status}`);
         }
         
         const employees = await response.json();
@@ -593,7 +799,7 @@ async function loadEmployees() {
         document.getElementById('statEmployees').textContent = employees.length;
     } catch (error) {
         console.error('Error loading employees:', error);
-        alert('❌ Ошибка при загрузке сотрудников: ' + error.message);
+        alert('❌ Ошибка при загружке сотрудников: ' + error.message);
     }
 }
 
@@ -685,17 +891,14 @@ async function saveEmployee() {
         let employeeData = {};
 
         if (editingEmployeeId) {
-            // Редактирование
             url = `${API_URL}/api/employees/${editingEmployeeId}`;
             method = 'PUT';
             employeeData = {
                 full_name: name,
                 password: password || undefined
             };
-            // Удаляем undefined поля
             Object.keys(employeeData).forEach(k => employeeData[k] === undefined && delete employeeData[k]);
         } else {
-            // Создание
             employeeData = {
                 username: username,
                 full_name: name,
@@ -785,7 +988,7 @@ function getRoleText(role) {
 }
 
 setInterval(() => {
-    if (currentUser && (currentUser.role === 'waiter' || currentUser.role === 'admin')) {
+    if (currentUser && currentUser.role === 'waiter') {
         loadOrders();
         loadTables();
     }
