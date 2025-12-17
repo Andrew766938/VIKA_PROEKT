@@ -2,6 +2,7 @@ import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 from pathlib import Path
 
 # Import all routers
@@ -38,8 +39,13 @@ app.include_router(tables_router)
 app.include_router(orders_router)
 app.include_router(employees_router)
 
+# Root route - serve the HTML interface
 @app.get("/")
 def root():
+    """Serve the main HTML interface"""
+    html_file = static_dir / "index.html"
+    if html_file.exists():
+        return FileResponse(html_file)
     return {"message": "Welcome to Platter Flow API", "version": "1.0.0"}
 
 @app.get("/health")
