@@ -17,10 +17,10 @@ def init_db():
         # Check if users already exist
         existing_users = db.query(User).count()
         if existing_users > 0:
-            print("✅ Database already initialized with users")
+            print("\u2705 Database already initialized with users")
             return
         
-        print("🔧 Initializing database...")
+        print("\ud83d\udd27 Initializing database...")
         
         # Create test users
         users = [
@@ -46,10 +46,10 @@ def init_db():
         
         db.add_all(users)
         db.commit()
-        print("✅ Test users created:")
-        print("   👨‍🍳 Повар: chefNum1 / chef123")
-        print("   👔 Официант: waiterNum1 / waiter123")
-        print("   👨‍💼 Админ: adminNum1 / admin123")
+        print("\u2705 Test users created:")
+        print("   \ud83d\udc68\u200d\ud83c\udf73 Повар: chefNum1 / chef123")
+        print("   \ud83d\udc54 Официант: waiterNum1 / waiter123")
+        print("   \ud83d\udc68\u200d\ud83d\udcbc Админ: adminNum1 / admin123")
         
         # Create test menu items
         menu_items = [
@@ -63,7 +63,7 @@ def init_db():
         
         db.add_all(menu_items)
         db.commit()
-        print("✅ Menu items created (6 items)")
+        print("\u2705 Menu items created (6 items)")
         
         # Create test tables
         tables = [
@@ -77,12 +77,14 @@ def init_db():
         
         db.add_all(tables)
         db.commit()
-        print("✅ Restaurant tables created (6 tables)")
+        print("\u2705 Restaurant tables created (6 tables)")
         
-        print("\n🎉 Database initialization complete!\n")
+        print("\n\ud83c\udf89 Database initialization complete!\n")
         
     except Exception as e:
-        print(f"❌ Error during initialization: {e}")
+        print(f"\u274c Error during initialization: {e}")
+        import traceback
+        traceback.print_exc()
         db.rollback()
     finally:
         db.close()
