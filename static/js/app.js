@@ -1,11 +1,11 @@
-const API_URL = window.location.origin; // Используем тот же домен
+const API_URL = window.location.origin;
 
 // Global state
 let currentUser = null;
 let currentTab = 'menuTab';
-let isLoginMode = true; // true = вход, false = регистрация
-let cart = []; // Корзина со товарами
-let allMenuItems = []; // Все товары из меню
+let isLoginMode = true;
+let cart = [];
+let allMenuItems = [];
 
 // Elements
 const authSection = document.getElementById('authSection');
@@ -15,14 +15,12 @@ const logoutBtn = document.getElementById('logoutBtn');
 const loginForm = document.getElementById('loginForm');
 const menuBtns = document.querySelectorAll('.menu-btn');
 
-// Event Listeners
 loginBtn.addEventListener('click', handleLogin);
 logoutBtn.addEventListener('click', handleLogout);
 menuBtns.forEach(btn => {
     btn.addEventListener('click', (e) => handleTabSwitch(e.target));
 });
 
-// Toggle between login and register
 function toggleAuthMode() {
     isLoginMode = !isLoginMode;
     const form = document.getElementById('authForm');
@@ -44,12 +42,9 @@ function toggleAuthMode() {
         submitBtn.textContent = '✅ Зарегистрироваться';
         document.getElementById('loginUser').placeholder = 'Выберите логин';
     }
-    
-    // Clear form
     form.reset();
 }
 
-// Functions
 async function handleLogin() {
     const username = document.getElementById('loginUser').value;
     const password = document.getElementById('loginPass').value;
@@ -63,16 +58,10 @@ async function handleLogin() {
 
     try {
         if (isLoginMode) {
-            // Login
             const response = await fetch(`${API_URL}/api/auth/login`, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    username: username,
-                    password: password
-                })
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, password })
             });
 
             if (!response.ok) {
@@ -83,40 +72,35 @@ async function handleLogin() {
 
             const data = await response.json();
             currentUser = data;
-            cart = []; // Очистим корзину при входе
+            cart = [];
 
-            // Show app section, hide auth
             authSection.classList.add('hidden');
             appSection.classList.remove('hidden');
 
-            // Update UI
             document.getElementById('userName').textContent = data.full_name;
             document.getElementById('userRole').textContent = getRoleText(data.role);
 
-            // Show/hide features based on role
             const ordersMenuBtn = Array.from(document.querySelectorAll('.menu-btn')).find(btn => btn.getAttribute('data-tab') === 'ordersTab');
             const cartBtn = document.getElementById('cartMenuBtn');
             const employeesBtn = document.getElementById('employeesMenuBtn');
             
             if (data.role === 'admin') {
-                // Admin sees: Menu, Tables, Orders, Employees
                 if (ordersMenuBtn) ordersMenuBtn.classList.remove('hidden');
                 employeesBtn.classList.remove('hidden');
                 document.getElementById('statEmployeeCard').classList.remove('hidden');
                 cartBtn.classList.add('hidden');
             } else if (data.role === 'waiter') {
-                // Waiter sees: Menu, Tables, Orders
+                // Официант видит: Меню, Столы, Заказы
                 if (ordersMenuBtn) ordersMenuBtn.classList.remove('hidden');
                 employeesBtn.classList.add('hidden');
                 cartBtn.classList.add('hidden');
             } else if (data.role === 'user') {
-                // User sees: Menu, Tables, My Order (корзина)
+                // Пользователь видит: Меню, Столы, Мой заказ
                 if (ordersMenuBtn) ordersMenuBtn.classList.add('hidden');
                 employeesBtn.classList.add('hidden');
                 cartBtn.classList.remove('hidden');
             }
 
-            // Load initial data
             loadMenuItems();
             loadTables();
             
@@ -130,7 +114,6 @@ async function handleLogin() {
 
             console.log('✅ Успешный вход:', data);
         } else {
-            // Register
             if (!fullName || !role) {
                 alert('Пожалуйста, заполните все поля');
                 return;
@@ -138,15 +121,8 @@ async function handleLogin() {
 
             const response = await fetch(`${API_URL}/api/auth/register`, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    username: username,
-                    password: password,
-                    full_name: fullName,
-                    role: role
-                })
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, password, full_name: fullName, role })
             });
 
             if (!response.ok) {
@@ -156,7 +132,7 @@ async function handleLogin() {
             }
 
             alert('✅ Аккаунт успешно создан! Теперь войдите.');
-            toggleAuthMode(); // Switch to login mode
+            toggleAuthMode();
             console.log('✅ Регистрация успешна');
         }
     } catch (error) {
@@ -188,7 +164,6 @@ function handleTabSwitch(btn) {
     document.getElementById(tabName).classList.remove('hidden');
     currentTab = tabName;
     
-    // Загружаем корзину когда открыта
     if (tabName === 'cartTab') {
         loadCart();
     }
@@ -199,7 +174,7 @@ async function loadMenuItems() {
     try {
         const response = await fetch(`${API_URL}/api/menu/`);
         const items = await response.json();
-        allMenuItems = items; // Сохраняем все товары
+        allMenuItems = items;
         
         const menuContent = document.getElementById('menuContent');
         menuContent.innerHTML = '';
@@ -221,7 +196,6 @@ async function loadMenuItems() {
             `;
             
             if (currentUser && currentUser.role === 'user') {
-                // безопасно передаем только ID
                 html += `
                     <button
                         class="btn btn-primary"
@@ -245,7 +219,6 @@ async function loadMenuItems() {
     }
 }
 
-// Добавляем функцию, которая по ID берёт товар из allMenuItems
 function addToCartById(itemId) {
     const id = parseInt(itemId, 10);
     const menuItem = allMenuItems.find(item => item.id === id);
@@ -300,12 +273,44 @@ async function loadTables() {
                     ${table.is_occupied ? '🔴 Занят' : '🟢 Свободен'}
                 </div>
             `;
+            
+            // Официанты и админы могут менять статус стола
+            if (currentUser && (currentUser.role === 'waiter' || currentUser.role === 'admin')) {
+                const toggleBtn = document.createElement('button');
+                toggleBtn.className = 'btn ' + (table.is_occupied ? 'btn-secondary' : 'btn-danger');
+                toggleBtn.style.cssText = 'width: 100%; font-size: 12px; padding: 8px; margin-top: 10px;';
+                toggleBtn.textContent = table.is_occupied ? '✅ Освободить' : '🔴 Занять';
+                toggleBtn.onclick = () => toggleTableStatus(table.id, !table.is_occupied);
+                tableEl.appendChild(toggleBtn);
+            }
+            
             tablesGrid.appendChild(tableEl);
         });
         
         document.getElementById('statTables').textContent = occupied;
     } catch (error) {
         console.error('Error loading tables:', error);
+    }
+}
+
+// Изменение статуса стола (для официантов и админов)
+async function toggleTableStatus(tableId, isOccupied) {
+    try {
+        const response = await fetch(`${API_URL}/api/tables/${tableId}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ is_occupied: isOccupied })
+        });
+
+        if (!response.ok) {
+            throw new Error('Ошибка при изменении статуса стола');
+        }
+
+        alert(`✅ Статус стола изменён`);
+        loadTables(); // Перезагрузим список столов
+    } catch (error) {
+        console.error('Error toggling table status:', error);
+        alert('❌ Ошибка: ' + error.message);
     }
 }
 
@@ -347,7 +352,7 @@ async function loadOrders() {
     }
 }
 
-// КОРЗИНА ТОВАРОВ
+// КОРЗИНА
 function updateCartBadge() {
     const badge = document.getElementById('cartBadge');
     if (badge) {
@@ -417,8 +422,6 @@ function loadCart() {
     `;
     
     cartContent.innerHTML = html;
-    
-    // Заполним выбор столов
     loadTablesForOrder();
 }
 
@@ -430,6 +433,7 @@ async function loadTablesForOrder() {
         
         if (!select) return;
         
+        // Только свободные столы
         tables.forEach(table => {
             if (!table.is_occupied) {
                 const option = document.createElement('option');
@@ -467,7 +471,7 @@ async function createOrder() {
     const tableId = tableSelect.value;
     
     if (!tableId) {
-        alert('⚠️ Пожалуйста, выберите стол!');
+        alert('⚠️ Пожалуйста, выберите свободный стол!');
         return;
     }
     
@@ -476,18 +480,13 @@ async function createOrder() {
         return;
     }
     
-    // Просто симулируем сохранение заказа
-    // Когда будет backend - переслать данные на сервер
     const totalPrice = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
     
     alert(`✅ Заказ оформлен!\n\nСтол: №${tableSelect.options[tableSelect.selectedIndex].text}\nСумма: ₽${totalPrice.toFixed(2)}\n\nВаш заказ принят официантом.`);
     
-    // Очистим корзину
     cart = [];
     updateCartBadge();
     loadCart();
-    
-    // Обновим данные
     loadTables();
 }
 
@@ -528,7 +527,6 @@ async function loadEmployees() {
     }
 }
 
-// Modal functions
 function addEmployeeModal() {
     if (!currentUser || currentUser.role !== 'admin') {
         alert('❌ Только администраторы могут добавлять сотрудников');
@@ -562,15 +560,8 @@ async function saveEmployee() {
     try {
         const response = await fetch(`${API_URL}/api/employees/`, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                username: username,
-                full_name: name,
-                password: password,
-                role: role
-            })
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username, full_name: name, password, role })
         });
 
         if (!response.ok) {
@@ -638,15 +629,14 @@ function getRoleText(role) {
     return roles[role] || role;
 }
 
-// Auto-refresh data
+// Автообновление данных для официантов и админов
 setInterval(() => {
-    if (currentUser && currentUser.role !== 'user') {
+    if (currentUser && (currentUser.role === 'waiter' || currentUser.role === 'admin')) {
         loadOrders();
         loadTables();
     }
 }, 5000);
 
-// Initial load
 window.addEventListener('DOMContentLoaded', () => {
     console.log('✅ App initialized');
 });
