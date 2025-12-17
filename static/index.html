@@ -661,13 +661,13 @@
                 <button class="menu-btn active" data-tab="menuTab">📋 Меню</button>
                 <button class="menu-btn" data-tab="tablesTab">🍽️ Столы</button>
                 <button class="menu-btn" data-tab="ordersTab">📦 Заказы</button>
-                <button class="menu-btn hidden" id="cartMenuBtn" data-tab="cartTab" style="position: relative;">🛒 Корзина <span id="cartBadge" class="hidden">0</span></button>
+                <button class="menu-btn hidden" id="cartMenuBtn" data-tab="cartTab" style="position: relative;">📋 Мой заказ <span id="cartBadge" class="hidden">0</span></button>
                 <button class="menu-btn hidden" id="employeesMenuBtn" data-tab="employeesTab">👥 Сотрудники</button>
             </div>
             <div class="main-content">
                 <div class="stats-grid">
                     <div class="stat-card">
-                        <h3>Всего заказов</h3>
+                        <h3>Всего блюд</h3>
                         <div class="value" id="statOrders">0</div>
                     </div>
                     <div class="stat-card">
@@ -696,7 +696,7 @@
                     <div class="orders-list" id="ordersList"></div>
                 </div>
                 <div class="tabpane hidden" id="cartTab">
-                    <h2>🛒 Моя корзина</h2>
+                    <h2>📋 Мой заказ</h2>
                     <div id="cartContent"></div>
                 </div>
                 <div class="tabpane hidden" id="employeesTab">
@@ -778,6 +778,6 @@
         </div>
     </div>
 
-    <script src="/static/js/app.js?v=2.0.0"></script>
+    <script src="/static/js/app.js?v=2.1.0"></script>
 </body>
 </html>
