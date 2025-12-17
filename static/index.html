@@ -281,6 +281,7 @@
             color: #666;
             text-align: left;
             transition: all 0.3s;
+            position: relative;
         }
 
         .menu-btn:hover {
@@ -292,6 +293,22 @@
             background: #f0f0f0;
             color: #667eea;
             border-left-color: #667eea;
+        }
+
+        #cartBadge {
+            position: absolute;
+            top: 8px;
+            right: 10px;
+            background: #e74c3c;
+            color: white;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: bold;
         }
 
         .main-content {
@@ -405,6 +422,25 @@
             font-size: 14px;
             color: #666;
             margin-bottom: 4px;
+        }
+
+        /* CART */
+        .cart-items {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .cart-item {
+            background: white;
+            border-radius: 10px;
+            padding: 15px;
+            border: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 15px;
         }
 
         /* EMPLOYEES TABLE */
@@ -625,6 +661,7 @@
                 <button class="menu-btn active" data-tab="menuTab">📋 Меню</button>
                 <button class="menu-btn" data-tab="tablesTab">🍽️ Столы</button>
                 <button class="menu-btn" data-tab="ordersTab">📦 Заказы</button>
+                <button class="menu-btn hidden" id="cartMenuBtn" data-tab="cartTab" style="position: relative;">🛒 Корзина <span id="cartBadge" class="hidden">0</span></button>
                 <button class="menu-btn hidden" id="employeesMenuBtn" data-tab="employeesTab">👥 Сотрудники</button>
             </div>
             <div class="main-content">
@@ -657,6 +694,10 @@
                 <div class="tabpane hidden" id="ordersTab">
                     <h2>📦 Заказы</h2>
                     <div class="orders-list" id="ordersList"></div>
+                </div>
+                <div class="tabpane hidden" id="cartTab">
+                    <h2>🛒 Моя корзина</h2>
+                    <div id="cartContent"></div>
                 </div>
                 <div class="tabpane hidden" id="employeesTab">
                     <h2>👥 Сотрудники</h2>
@@ -737,6 +778,6 @@
         </div>
     </div>
 
-    <script src="/static/js/app.js?v=1.2.0"></script>
+    <script src="/static/js/app.js?v=2.0.0"></script>
 </body>
 </html>
