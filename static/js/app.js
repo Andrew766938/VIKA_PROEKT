@@ -306,8 +306,8 @@ async function toggleTableStatus(tableId, isOccupied) {
             throw new Error('Ошибка при изменении статуса стола');
         }
 
-        alert(`✅ Статус стола изменён`);
-        loadTables(); // Перезагрузим список столов
+        alert('✅ Статус стола изменён');
+        loadTables(); // Перезагружим список столов
     } catch (error) {
         console.error('Error toggling table status:', error);
         alert('❌ Ошибка: ' + error.message);
@@ -336,11 +336,30 @@ async function loadOrders() {
             
             const orderEl = document.createElement('div');
             orderEl.className = 'order';
-            orderEl.innerHTML = `
+            
+            let html = `
                 <div class="name">Заказ #${order.id} - Стол №${order.table_id}</div>
                 <div class="meta">Статус: <strong>${getStatusText(order.status)}</strong></div>
                 <div class="meta">Сумма: ₽${order.total_price.toFixed(2)}</div>
             `;
+            
+            // Официанты и админы видят кнопку "Заказ готов"
+            if (currentUser && (currentUser.role === 'waiter' || currentUser.role === 'admin')) {
+                if (order.status === 'pending' || order.status === 'confirmed') {
+                    html += `
+                        <button 
+                            class="btn btn-primary" 
+                            style="width: 100%; margin-top: 10px; font-size: 12px; padding: 8px;"
+                            onclick="markOrderReady(${order.id})"
+                        >
+                            🟢 Заказ готов
+                        </button>
+                    `;
+                }
+            }
+            
+            orderEl.innerHTML = html;
+            orderEl.style.cursor = 'pointer';
             orderEl.addEventListener('click', () => showOrderDetails(order));
             ordersList.appendChild(orderEl);
         });
@@ -349,6 +368,27 @@ async function loadOrders() {
         document.getElementById('statOrders').textContent = orders.length;
     } catch (error) {
         console.error('Error loading orders:', error);
+    }
+}
+
+// Отметить заказ готовым
+async function markOrderReady(orderId) {
+    try {
+        const response = await fetch(`${API_URL}/api/orders/${orderId}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ status: 'ready' })
+        });
+
+        if (!response.ok) {
+            throw new Error('Ошибка при обновлении статуса заказа');
+        }
+
+        alert('✅ Заказ отмечен как готовый!');
+        loadOrders(); // Перезагружаем список заказов
+    } catch (error) {
+        console.error('Error marking order ready:', error);
+        alert('❌ Ошибка: ' + error.message);
     }
 }
 
@@ -466,6 +506,7 @@ function removeFromCart(index) {
     updateCartBadge();
 }
 
+// Создание заказа и отправка на backend
 async function createOrder() {
     const tableSelect = document.getElementById('orderTableSelect');
     const tableId = tableSelect.value;
@@ -480,14 +521,42 @@ async function createOrder() {
         return;
     }
     
-    const totalPrice = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-    
-    alert(`✅ Заказ оформлен!\n\nСтол: №${tableSelect.options[tableSelect.selectedIndex].text}\nСумма: ₽${totalPrice.toFixed(2)}\n\nВаш заказ принят официантом.`);
-    
-    cart = [];
-    updateCartBadge();
-    loadCart();
-    loadTables();
+    try {
+        // Формируем данные заказа для backend
+        const orderData = {
+            table_id: parseInt(tableId),
+            items: cart.map(item => ({
+                menu_item_id: item.id,
+                quantity: item.quantity
+            }))
+        };
+        
+        const response = await fetch(`${API_URL}/api/orders/`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(orderData)
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            alert('❌ Ошибка при создании заказа: ' + (errorData.detail || 'Неизвестная ошибка'));
+            return;
+        }
+
+        const order = await response.json();
+        const totalPrice = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+        
+        alert(`✅ Заказ #${order.id} оформлен!\n\nСтол: №${tableSelect.options[tableSelect.selectedIndex].text}\nСумма: ₽${totalPrice.toFixed(2)}\n\nВаш заказ принят. Ожидайте готовности.`);
+        
+        // Очищаем корзину
+        cart = [];
+        updateCartBadge();
+        loadCart();
+        loadTables();
+    } catch (error) {
+        console.error('Error creating order:', error);
+        alert('❌ Ошибка: ' + error.message);
+    }
 }
 
 // Employees
@@ -635,7 +704,7 @@ setInterval(() => {
         loadOrders();
         loadTables();
     }
-}, 5000);
+}, 3000); // Обновляем каждые 3 секунды для более быстрого отображения новых заказов
 
 window.addEventListener('DOMContentLoaded', () => {
     console.log('✅ App initialized');
