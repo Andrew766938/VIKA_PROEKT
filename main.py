@@ -5,6 +5,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from pathlib import Path
 from app.database.core import Base, engine
+from app.database.init_db import init_db
 
 # Import all routers
 from app.api.auth import router as auth_router
@@ -19,8 +20,9 @@ app = FastAPI(
     version="1.0.0"
 )
 
-# Create tables on startup
+# Create tables and initialize data on startup
 Base.metadata.create_all(bind=engine)
+init_db()
 
 # Add CORS middleware
 app.add_middleware(
