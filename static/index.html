@@ -659,8 +659,7 @@
         <div class="app-body">
             <div class="sidebar">
                 <button class="menu-btn active" data-tab="menuTab">📋 Меню</button>
-                <button class="menu-btn" data-tab="tablesTab">🍽️ Столы</button>
-                <button class="menu-btn" data-tab="ordersTab">📦 Заказы</button>
+                <button class="menu-btn hidden" id="ordersMenuBtn" data-tab="ordersTab">📦 Заказы</button>
                 <button class="menu-btn hidden" id="cartMenuBtn" data-tab="cartTab" style="position: relative;">📋 Мой заказ <span id="cartBadge" class="hidden">0</span></button>
                 <button class="menu-btn hidden" id="employeesMenuBtn" data-tab="employeesTab">👥 Сотрудники</button>
                 <button class="menu-btn hidden" id="tablesManageBtn" data-tab="tablesManageTab">🛠️ Управ. столами</button>
@@ -688,10 +687,6 @@
                 <div class="tabpane" id="menuTab">
                     <h2>📋 Меню</h2>
                     <div class="items-grid" id="menuContent"></div>
-                </div>
-                <div class="tabpane hidden" id="tablesTab">
-                    <h2>🍽️ Столы</h2>
-                    <div class="items-grid" id="tablesGrid"></div>
                 </div>
                 <div class="tabpane hidden" id="ordersTab">
                     <h2>📦 Заказы</h2>
@@ -859,6 +854,6 @@
         </div>
     </div>
 
-    <script src="/static/js/app.js?v=2.2.0"></script>
+    <script src="/static/js/app.js?v=2.3.0"></script>
 </body>
 </html>
