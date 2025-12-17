@@ -31,17 +31,17 @@ function toggleAuthMode() {
     const submitBtn = document.getElementById('doLogin');
     
     if (isLoginMode) {
-        title.textContent = 'Login';
+        title.textContent = '🔐 Вход';
         roleGroup.classList.add('hidden');
-        toggleBtn.textContent = 'Create account';
-        submitBtn.textContent = 'Login';
-        document.getElementById('loginUser').placeholder = 'Enter login';
+        toggleBtn.textContent = 'Создать аккаунт';
+        submitBtn.textContent = '🔐 Вход';
+        document.getElementById('loginUser').placeholder = 'Введите логин';
     } else {
-        title.textContent = 'Registration';
+        title.textContent = '📝 Регистрация';
         roleGroup.classList.remove('hidden');
-        toggleBtn.textContent = 'Already have account? Login';
-        submitBtn.textContent = 'Register';
-        document.getElementById('loginUser').placeholder = 'Choose login';
+        toggleBtn.textContent = 'Уже есть аккаунт? Войти';
+        submitBtn.textContent = '✅ Зарегистрироваться';
+        document.getElementById('loginUser').placeholder = 'Выберите логин';
     }
     form.reset();
 }
@@ -53,7 +53,7 @@ async function handleLogin() {
     const role = document.getElementById('loginRole')?.value;
 
     if (!username || !password) {
-        alert('Please fill all fields');
+        alert('❌ Пожалуйста, заполните все поля');
         return;
     }
 
@@ -67,7 +67,7 @@ async function handleLogin() {
 
             if (!response.ok) {
                 const errorData = await response.json();
-                alert('ERROR: ' + (errorData.detail || 'Check login and password'));
+                alert('❌ Ошибка входа: ' + (errorData.detail || 'Проверьте логин и пароль'));
                 return;
             }
 
@@ -122,10 +122,10 @@ async function handleLogin() {
                 loadEmployees();
             }
 
-            console.log('SUCCESS Login:', data);
+            console.log('✅ Успешный вход:', data);
         } else {
             if (!fullName || !role) {
-                alert('Please fill all fields');
+                alert('❌ Пожалуйста, заполните все поля');
                 return;
             }
 
@@ -137,17 +137,17 @@ async function handleLogin() {
 
             if (!response.ok) {
                 const errorData = await response.json();
-                alert('ERROR: ' + (errorData.detail || 'Login already exists'));
+                alert('❌ Ошибка регистрации: ' + (errorData.detail || 'Такой логин уже существует'));
                 return;
             }
 
-            alert('SUCCESS Account created! Now login.');
+            alert('✅ Аккаунт успешно создан! Теперь войдите.');
             toggleAuthMode();
-            console.log('SUCCESS Registration');
+            console.log('✅ Регистрация успешна');
         }
     } catch (error) {
         console.error('Error:', error);
-        alert('ERROR: ' + error.message);
+        alert('❌ Ошибка: ' + error.message);
     }
 }
 
@@ -158,9 +158,9 @@ function handleLogout() {
     appSection.classList.add('hidden');
     document.getElementById('authForm').reset();
     isLoginMode = true;
-    document.querySelector('.auth-card h2').textContent = 'Login';
+    document.querySelector('.auth-card h2').textContent = '🔐 Вход';
     document.getElementById('roleGroup').classList.add('hidden');
-    document.getElementById('doLogin').textContent = 'Login';
+    document.getElementById('doLogin').textContent = '🔐 Вход';
 }
 
 function handleTabSwitch(btn) {
@@ -197,7 +197,7 @@ async function loadTablesForStatus() {
         tablesStatusContent.innerHTML = '';
         
         if (tables.length === 0) {
-            tablesStatusContent.innerHTML = '<p style="text-align: center; color: #999; grid-column: 1/-1;">No tables</p>';
+            tablesStatusContent.innerHTML = '<p style="text-align: center; color: #999; grid-column: 1/-1;">Нет столов</p>';
             return;
         }
         
@@ -206,23 +206,19 @@ async function loadTablesForStatus() {
             tableCard.className = `table-card ${table.is_occupied ? 'occupied' : 'free'}`;
             
             tableCard.innerHTML = `
-                <div class="number">Table #${table.table_number}</div>
-                <div class="seats">Seats: ${table.seats}</div>
-                <div class="status ${table.is_occupied ? 'occupied' : 'free'}">
-                    ${table.is_occupied ? 'OCCUPIED' : 'FREE'}
-                </div>
-                <div class="actions">
-                    ${table.is_occupied ? 
-                        `<button class="btn btn-success" style="width: 100%;" onclick="toggleTableStatus(${table.id}, false)">Mark Free</button>` :
-                        `<button class="btn btn-danger" style="width: 100%;" onclick="toggleTableStatus(${table.id}, true)">Mark Occupied</button>`
-                    }
-                </div>
+                <div class="number">#${table.table_number}</div>
+                <div class="seats">${table.seats} мест</div>
+                <button class="btn ${table.is_occupied ? 'btn-success' : 'btn-danger'}" 
+                        style="width: 100%; font-size: 13px; padding: 8px;" 
+                        onclick="toggleTableStatus(${table.id}, ${!table.is_occupied})">
+                    ${table.is_occupied ? '🟢 Освободить' : '🔴 Занять'}
+                </button>
             `;
             
             tablesStatusContent.appendChild(tableCard);
         });
     } catch (error) {
-        console.error('Error loading tables for status:', error);
+        console.error('Ошибка загрузки столов:', error);
     }
 }
 
@@ -234,13 +230,12 @@ async function toggleTableStatus(tableId, isOccupied) {
             body: JSON.stringify({ is_occupied: isOccupied })
         });
 
-        if (!response.ok) throw new Error('Error updating table status');
+        if (!response.ok) throw new Error('Ошибка обновления статуса стола');
         
-        alert(isOccupied ? 'Table marked as occupied' : 'Table marked as free');
         loadTablesForStatus();
     } catch (error) {
-        console.error('Error toggling table status:', error);
-        alert('ERROR: ' + error.message);
+        console.error('Ошибка изменения статуса стола:', error);
+        alert('❌ Ошибка: ' + error.message);
     }
 }
 
@@ -255,7 +250,7 @@ async function loadMenuItems() {
         menuContent.innerHTML = '';
         
         if (items.length === 0) {
-            menuContent.innerHTML = '<p style="grid-column: 1/-1; text-align: center; color: #999;">No menu items</p>';
+            menuContent.innerHTML = '<p style="grid-column: 1/-1; text-align: center; color: #999;">Нет доступных пунктов меню</p>';
             return;
         }
         
@@ -265,8 +260,8 @@ async function loadMenuItems() {
             
             let html = `
                 <div class="name">${item.name}</div>
-                <div class="desc">${item.description || 'No description'}</div>
-                <div class="meta">Rubles ${item.price.toFixed(2)}</div>
+                <div class="desc">${item.description || 'Без описания'}</div>
+                <div class="meta">₽${item.price.toFixed(2)}</div>
                 <small style="color: #999; display: block; margin-bottom: 10px;">${item.category}</small>
             `;
             
@@ -278,7 +273,7 @@ async function loadMenuItems() {
                         data-item-id="${item.id}"
                         onclick="addToCartById(this.dataset.itemId)"
                     >
-                        Add to order
+                        📋 Добавить в заказ
                     </button>
                 `;
             }
@@ -289,8 +284,8 @@ async function loadMenuItems() {
         
         document.getElementById('statOrders').textContent = items.length;
     } catch (error) {
-        console.error('Error loading menu:', error);
-        document.getElementById('menuContent').innerHTML = '<p style="color: red;">ERROR loading menu</p>';
+        console.error('Ошибка загрузки меню:', error);
+        document.getElementById('menuContent').innerHTML = '<p style="color: red;">❌ Ошибка загрузки меню</p>';
     }
 }
 
@@ -299,7 +294,7 @@ function addToCartById(itemId) {
     const menuItem = allMenuItems.find(item => item.id === id);
 
     if (!menuItem) {
-        alert('ERROR Item not found');
+        alert('❌ Товар не найден');
         return;
     }
 
@@ -316,7 +311,7 @@ function addToCartById(itemId) {
     }
 
     updateCartBadge();
-    alert(`SUCCESS "${menuItem.name}" added to order!`);
+    alert(`✅ "${menuItem.name}" добавлено в заказ!`);
 }
 
 // ADMIN: Menu Management
@@ -329,7 +324,7 @@ async function loadMenuForManagement() {
         menuManageContent.innerHTML = '';
         
         if (items.length === 0) {
-            menuManageContent.innerHTML = '<p style="text-align: center; color: #999;">No dishes</p>';
+            menuManageContent.innerHTML = '<p style="text-align: center; color: #999;">Нет блюд</p>';
         } else {
             items.forEach(item => {
                 const itemEl = document.createElement('div');
@@ -337,14 +332,14 @@ async function loadMenuForManagement() {
                 itemEl.innerHTML = `
                     <div class="name">${item.name}</div>
                     <div class="desc">${item.description}</div>
-                    <div class="meta">Rubles ${item.price} | ${item.category}</div>
-                    <button class="btn btn-danger" style="width: 100%; margin-top: 10px; font-size: 12px; padding: 8px;" onclick="deleteMenuItem(${item.id})">Delete</button>
+                    <div class="meta">₽${item.price} | ${item.category}</div>
+                    <button class="btn btn-danger" style="width: 100%; margin-top: 10px; font-size: 12px; padding: 8px;" onclick="deleteMenuItem(${item.id})">🗑️ Удалить</button>
                 `;
                 menuManageContent.appendChild(itemEl);
             });
         }
     } catch (error) {
-        console.error('Error loading menu for management:', error);
+        console.error('Ошибка загрузки меню:', error);
     }
 }
 
@@ -364,7 +359,7 @@ async function saveMenuItem() {
     const category = document.getElementById('itemCategory').value;
     
     if (!name || !price || !category) {
-        alert('ERROR Please fill required fields');
+        alert('❌ Пожалуйста, заполните обязательные поля');
         return;
     }
     
@@ -382,23 +377,23 @@ async function saveMenuItem() {
 
         if (!response.ok) {
             const errorData = await response.json();
-            alert('ERROR: ' + (errorData.detail || 'Unknown error'));
+            alert('❌ Ошибка: ' + (errorData.detail || 'Неизвестная ошибка'));
             return;
         }
 
         const item = await response.json();
-        alert(`SUCCESS Dish "${item.name}" added`);
+        alert(`✅ Блюдо "${item.name}" добавлено`);
         closeAddMenuItemModal();
         loadMenuForManagement();
         loadMenuItems();
     } catch (error) {
-        console.error('Error saving menu item:', error);
-        alert('ERROR: ' + error.message);
+        console.error('Ошибка сохранения блюда:', error);
+        alert('❌ Ошибка: ' + error.message);
     }
 }
 
 async function deleteMenuItem(itemId) {
-    if (!confirm('WARNING Are you sure? This action cannot be undone.')) return;
+    if (!confirm('⚠️ Уверены? Это действие невозможно отменить.')) return;
     
     const id = parseInt(itemId, 10);
     
@@ -407,14 +402,14 @@ async function deleteMenuItem(itemId) {
             method: 'DELETE'
         });
 
-        if (!response.ok) throw new Error('Deletion error');
+        if (!response.ok) throw new Error('Ошибка удаления');
         
-        alert('SUCCESS Dish deleted');
+        alert('✅ Блюдо удалено');
         loadMenuForManagement();
         loadMenuItems();
     } catch (error) {
-        console.error('Error deleting menu item:', error);
-        alert('ERROR: ' + error.message);
+        console.error('Ошибка удаления блюда:', error);
+        alert('❌ Ошибка: ' + error.message);
     }
 }
 
@@ -428,23 +423,23 @@ async function loadTablesForManagement() {
         tablesManageContent.innerHTML = '';
         
         if (tables.length === 0) {
-            tablesManageContent.innerHTML = '<p style="text-align: center; color: #999;">No tables</p>';
+            tablesManageContent.innerHTML = '<p style="text-align: center; color: #999;">Нет столов</p>';
         } else {
             tables.forEach(table => {
                 const tableEl = document.createElement('div');
                 tableEl.className = 'item';
                 tableEl.style.borderTop = table.is_occupied ? '4px solid #e74c3c' : '4px solid #2ecc71';
                 tableEl.innerHTML = `
-                    <div class="name">Table #${table.table_number}</div>
-                    <div class="desc">Seats: ${table.seats}</div>
-                    <div class="meta" style="color: ${table.is_occupied ? '#e74c3c' : '#2ecc71'};">${table.is_occupied ? 'OCCUPIED' : 'FREE'}</div>
-                    <button class="btn btn-danger" style="width: 100%; margin-top: 10px; font-size: 12px; padding: 8px;" onclick="deleteTable(${table.id})">Delete</button>
+                    <div class="name">Стол №${table.table_number}</div>
+                    <div class="desc">Мест: ${table.seats}</div>
+                    <div class="meta" style="color: ${table.is_occupied ? '#e74c3c' : '#2ecc71'};">${table.is_occupied ? '🔴 Занят' : '🟢 Свободен'}</div>
+                    <button class="btn btn-danger" style="width: 100%; margin-top: 10px; font-size: 12px; padding: 8px;" onclick="deleteTable(${table.id})">🗑️ Удалить</button>
                 `;
                 tablesManageContent.appendChild(tableEl);
             });
         }
     } catch (error) {
-        console.error('Error loading tables for management:', error);
+        console.error('Ошибка загрузки столов:', error);
     }
 }
 
@@ -462,7 +457,7 @@ async function saveTable() {
     const seats = parseInt(document.getElementById('tableSeats').value);
     
     if (!tableNumber || !seats || seats < 1) {
-        alert('ERROR Please enter correct data');
+        alert('❌ Пожалуйста, введите корректные данные');
         return;
     }
     
@@ -478,22 +473,22 @@ async function saveTable() {
 
         if (!response.ok) {
             const errorData = await response.json();
-            alert('ERROR: ' + (errorData.detail || 'Unknown error'));
+            alert('❌ Ошибка: ' + (errorData.detail || 'Неизвестная ошибка'));
             return;
         }
 
         const table = await response.json();
-        alert(`SUCCESS Table #${table.table_number} added`);
+        alert(`✅ Стол №${table.table_number} добавлен`);
         closeAddTableModal();
         loadTablesForManagement();
     } catch (error) {
-        console.error('Error saving table:', error);
-        alert('ERROR: ' + error.message);
+        console.error('Ошибка сохранения стола:', error);
+        alert('❌ Ошибка: ' + error.message);
     }
 }
 
 async function deleteTable(tableId) {
-    if (!confirm('WARNING Are you sure? This action cannot be undone.')) return;
+    if (!confirm('⚠️ Уверены? Это действие невозможно отменить.')) return;
     
     const id = parseInt(tableId, 10);
     
@@ -502,34 +497,34 @@ async function deleteTable(tableId) {
             method: 'DELETE'
         });
 
-        if (!response.ok) throw new Error('Deletion error');
+        if (!response.ok) throw new Error('Ошибка удаления');
         
-        alert('SUCCESS Table deleted');
+        alert('✅ Стол удален');
         loadTablesForManagement();
     } catch (error) {
-        console.error('Error deleting table:', error);
-        alert('ERROR: ' + error.message);
+        console.error('Ошибка удаления стола:', error);
+        alert('❌ Ошибка: ' + error.message);
     }
 }
 
 // Employees
 async function loadEmployees() {
     try {
-        console.log('LOAD Loading employees...');
+        console.log('🔄 Загрузка сотрудников...');
         const response = await fetch(`${API_URL}/api/employees/`);
         
         if (!response.ok) {
-            throw new Error(`Error loading employees: ${response.status}`);
+            throw new Error(`Ошибка загрузки сотрудников: ${response.status}`);
         }
         
         const employees = await response.json();
-        console.log('SUCCESS Employees loaded:', employees);
+        console.log('✅ Сотрудники загружены:', employees);
         
         const tableBody = document.getElementById('employeesTableBody');
         tableBody.innerHTML = '';
         
         if (employees.length === 0) {
-            tableBody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: #999;">No employees</td></tr>';
+            tableBody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: #999;">Нет сотрудников</td></tr>';
             return;
         }
         
@@ -542,8 +537,8 @@ async function loadEmployees() {
                 <td><span class="role-badge ${emp.role}">${getRoleText(emp.role)}</span></td>
                 <td>
                     <div class="employee-actions">
-                        <button class="btn btn-secondary" style="padding: 4px 8px; font-size: 12px;" onclick="editEmployee(${emp.id}, '${emp.username}', '${emp.full_name}', '${emp.role}')">Edit</button>
-                        <button class="btn btn-danger" style="padding: 4px 8px; font-size: 12px;" onclick="deleteEmployee(${emp.id})">Delete</button>
+                        <button class="btn btn-secondary" style="padding: 4px 8px; font-size: 12px;" onclick="editEmployee(${emp.id}, '${emp.username}', '${emp.full_name}', '${emp.role}')">✏️ Изменить</button>
+                        <button class="btn btn-danger" style="padding: 4px 8px; font-size: 12px;" onclick="deleteEmployee(${emp.id})">🗑️ Удалить</button>
                     </div>
                 </td>
             `;
@@ -552,45 +547,45 @@ async function loadEmployees() {
         
         document.getElementById('statEmployees').textContent = employees.length;
     } catch (error) {
-        console.error('Error loading employees:', error);
-        alert('ERROR when loading employees: ' + error.message);
+        console.error('Ошибка загрузки сотрудников:', error);
+        alert('❌ Ошибка при загрузке сотрудников: ' + error.message);
     }
 }
 
 function addEmployeeModal() {
     if (!currentUser || currentUser.role !== 'admin') {
-        alert('ERROR Only admins can add employees');
+        alert('❌ Только администраторы могут добавлять сотрудников');
         return;
     }
     
-    console.log('OPEN Opening employee modal');
+    console.log('🔓 Открытие модального окна');
     editingEmployeeId = null;
-    document.getElementById('modalTitle').textContent = 'Add employee';
+    document.getElementById('modalTitle').textContent = 'Добавить сотрудника';
     document.getElementById('employeeForm').reset();
     document.getElementById('empPassword').parentElement.style.display = 'block';
     document.getElementById('employeeModal').classList.remove('hidden');
 }
 
 function editEmployee(id, username, fullName, role) {
-    console.log('EDIT Editing employee:', id);
+    console.log('✏️ Редактирование сотрудника:', id);
     editingEmployeeId = id;
-    document.getElementById('modalTitle').textContent = 'Edit employee';
+    document.getElementById('modalTitle').textContent = 'Редактировать сотрудника';
     document.getElementById('empUsername').value = username;
     document.getElementById('empName').value = fullName;
     document.getElementById('empRole').value = role;
     document.getElementById('empPassword').value = '';
-    document.getElementById('empPassword').placeholder = 'Leave empty to not change password';
+    document.getElementById('empPassword').placeholder = 'Оставьте пустым, чтобы не менять';
     document.getElementById('empPassword').parentElement.style.display = 'block';
     document.getElementById('employeeModal').classList.remove('hidden');
 }
 
 async function deleteEmployee(id) {
-    if (!confirm('WARNING Are you sure you want to delete employee?')) {
+    if (!confirm('⚠️ Вы уверены, что хотите удалить сотрудника?')) {
         return;
     }
     
     try {
-        console.log('DELETE Deleting employee:', id);
+        console.log('🗑️ Удаление сотрудника:', id);
         const response = await fetch(`${API_URL}/api/employees/${id}`, {
             method: 'DELETE',
             headers: { 'Content-Type': 'application/json' }
@@ -598,20 +593,20 @@ async function deleteEmployee(id) {
 
         if (!response.ok) {
             const errorData = await response.json();
-            alert('ERROR when deleting: ' + (errorData.detail || 'Unknown error'));
+            alert('❌ Ошибка при удалении: ' + (errorData.detail || 'Неизвестная ошибка'));
             return;
         }
 
-        alert('SUCCESS Employee deleted');
+        alert('✅ Сотрудник успешно удален');
         loadEmployees();
     } catch (error) {
-        console.error('Error deleting employee:', error);
-        alert('ERROR: ' + error.message);
+        console.error('Ошибка удаления сотрудника:', error);
+        alert('❌ Ошибка: ' + error.message);
     }
 }
 
 function closeEmployeeModal() {
-    console.log('CLOSE Closing modal');
+    console.log('❌ Закрытие модального окна');
     document.getElementById('employeeModal').classList.add('hidden');
     editingEmployeeId = null;
 }
@@ -626,15 +621,15 @@ async function saveEmployee() {
     const password = document.getElementById('empPassword').value;
     const role = document.getElementById('empRole').value;
 
-    console.log('SAVE Saving employee:', { username, name, role, isEdit: !!editingEmployeeId });
+    console.log('📝 Сохранение сотрудника:', { username, name, role, isEdit: !!editingEmployeeId });
 
     if (!username || !name || !role) {
-        alert('ERROR Please fill required fields');
+        alert('❌ Пожалуйста, заполните все обязательные поля');
         return;
     }
 
     if (!editingEmployeeId && !password) {
-        alert('ERROR Please enter password');
+        alert('❌ Пожалуйста, введите пароль');
         return;
     }
 
@@ -660,7 +655,7 @@ async function saveEmployee() {
             };
         }
         
-        console.log('SEND Sending data:', employeeData);
+        console.log('📤 Отправка данных:', employeeData);
         
         const response = await fetch(url, {
             method: method,
@@ -668,25 +663,25 @@ async function saveEmployee() {
             body: JSON.stringify(employeeData)
         });
 
-        console.log('RESPONSE Server response:', response.status);
+        console.log('📥 Ответ сервера:', response.status);
 
         if (!response.ok) {
             const errorData = await response.json();
-            console.log('ERROR Server error:', errorData);
-            alert('ERROR: ' + (errorData.detail || 'Unknown error'));
+            console.log('❌ Ошибка сервера:', errorData);
+            alert('❌ Ошибка: ' + (errorData.detail || 'Неизвестная ошибка'));
             return;
         }
 
         const employee = await response.json();
-        console.log('SUCCESS Employee saved:', employee);
+        console.log('✅ Сотрудник сохранен:', employee);
         
-        const action = editingEmployeeId ? 'updated' : 'created';
-        alert(`SUCCESS Employee "${employee.full_name}" (role: ${getRoleText(employee.role)}) ${action}!`);
+        const action = editingEmployeeId ? 'обновлен' : 'создан';
+        alert(`✅ Сотрудник "${employee.full_name}" (${getRoleText(employee.role)}) успешно ${action}!`);
         closeEmployeeModal();
         loadEmployees();
     } catch (error) {
-        console.error('Error saving employee:', error);
-        alert('ERROR when saving: ' + error.message);
+        console.error('Ошибка сохранения сотрудника:', error);
+        alert('❌ Ошибка при сохранении: ' + error.message);
     }
 }
 
@@ -710,8 +705,8 @@ function loadCart() {
     if (cart.length === 0) {
         cartContent.innerHTML = `
             <div style="text-align: center; padding: 40px; color: #999;">
-                <p>Your order is empty</p>
-                <p>Add dishes from menu</p>
+                <p>📝 Ваш заказ пуст</p>
+                <p>Добавьте блюда из меню</p>
             </div>
         `;
         return;
@@ -729,14 +724,14 @@ function loadCart() {
                 <div style="flex: 1;">
                     <strong>${item.name}</strong>
                     <p style="margin: 5px 0; color: #666; font-size: 14px;">
-                        Rubles ${item.price} x ${item.quantity} = Rubles ${itemTotal.toFixed(2)}
+                        ₽${item.price} x ${item.quantity} = ₽${itemTotal.toFixed(2)}
                     </p>
                 </div>
                 <div style="display: flex; gap: 5px; align-items: center;">
                     <button class="btn btn-secondary" style="width: 30px; height: 30px; padding: 0;" onclick="changeQuantity(${index}, -1)">-</button>
                     <span style="min-width: 20px; text-align: center;">${item.quantity}</span>
                     <button class="btn btn-secondary" style="width: 30px; height: 30px; padding: 0;" onclick="changeQuantity(${index}, 1)">+</button>
-                    <button class="btn btn-danger" style="width: 40px; height: 30px; padding: 0; margin-left: 10px;" onclick="removeFromCart(${index})">x</button>
+                    <button class="btn btn-danger" style="width: 40px; height: 30px; padding: 0; margin-left: 10px;" onclick="removeFromCart(${index})">×</button>
                 </div>
             </div>
         `;
@@ -746,16 +741,16 @@ function loadCart() {
     html += `
         <div style="margin-top: 20px; padding: 20px; background: #f9f9f9; border-radius: 8px;">
             <div style="display: flex; justify-content: space-between; font-size: 18px; font-weight: bold; margin-bottom: 15px;">
-                <span>Total:</span>
-                <span>Rubles ${total.toFixed(2)}</span>
+                <span>Итого:</span>
+                <span>₽${total.toFixed(2)}</span>
             </div>
             <div class="form-group">
-                <label>Select table</label>
+                <label>Выберите стол</label>
                 <select id="orderTableSelect">
-                    <option value="">Select table</option>
+                    <option value="">Выберите стол</option>
                 </select>
             </div>
-            <button class="btn btn-primary" onclick="createOrder()">Complete Order</button>
+            <button class="btn btn-primary" onclick="createOrder()">📋 Оформить заказ</button>
         </div>
     `;
     
@@ -775,12 +770,12 @@ async function loadTablesForOrder() {
             if (!table.is_occupied) {
                 const option = document.createElement('option');
                 option.value = table.id;
-                option.textContent = `Table #${table.table_number} (${table.seats} seats)`;
+                option.textContent = `Стол №${table.table_number} (${table.seats} мест)`;
                 select.appendChild(option);
             }
         });
     } catch (error) {
-        console.error('Error loading tables for order:', error);
+        console.error('Ошибка загрузки столов:', error);
     }
 }
 
@@ -798,7 +793,7 @@ function changeQuantity(index, delta) {
 function removeFromCart(index) {
     const itemName = cart[index].name;
     cart.splice(index, 1);
-    alert(`"${itemName}" removed from order`);
+    alert(`"${itemName}" удален из заказа`);
     loadCart();
     updateCartBadge();
 }
@@ -808,12 +803,12 @@ async function createOrder() {
     const tableId = tableSelect.value;
     
     if (!tableId) {
-        alert('WARNING Please select a free table!');
+        alert('⚠️ Пожалуйста, выберите свободный стол!');
         return;
     }
     
     if (cart.length === 0) {
-        alert('ERROR Order is empty');
+        alert('❌ Заказ пуст');
         return;
     }
     
@@ -834,21 +829,21 @@ async function createOrder() {
 
         if (!response.ok) {
             const errorData = await response.json();
-            alert('ERROR when creating order: ' + (errorData.detail || 'Unknown error'));
+            alert('❌ Ошибка при создании заказа: ' + (errorData.detail || 'Неизвестная ошибка'));
             return;
         }
 
         const order = await response.json();
         const totalPrice = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
         
-        alert(`SUCCESS Order #${order.id} completed!\n\nTable: ${tableSelect.options[tableSelect.selectedIndex].text}\nTotal: Rubles ${totalPrice.toFixed(2)}\n\nYour order accepted. Wait for ready.`);
+        alert(`✅ Заказ #${order.id} оформлен!\n\n${tableSelect.options[tableSelect.selectedIndex].text}\nСумма: ₽${totalPrice.toFixed(2)}\n\nВаш заказ принят.`);
         
         cart = [];
         updateCartBadge();
         loadCart();
     } catch (error) {
-        console.error('Error creating order:', error);
-        alert('ERROR: ' + error.message);
+        console.error('Ошибка создания заказа:', error);
+        alert('❌ Ошибка: ' + error.message);
     }
 }
 
@@ -862,7 +857,7 @@ async function loadOrders() {
         ordersList.innerHTML = '';
         
         if (orders.length === 0) {
-            ordersList.innerHTML = '<p style="text-align: center; color: #999;">No orders</p>';
+            ordersList.innerHTML = '<p style="text-align: center; color: #999;">Нет заказов</p>';
             return;
         }
         
@@ -876,9 +871,9 @@ async function loadOrders() {
             orderEl.className = 'order';
             
             let html = `
-                <div class="name">Order #${order.id} - Table #${order.table_id}</div>
-                <div class="meta">Status: <strong>${getStatusText(order.status)}</strong></div>
-                <div class="meta">Total: Rubles ${order.total_price.toFixed(2)}</div>
+                <div class="name">Заказ #${order.id} - Стол №${order.table_id}</div>
+                <div class="meta">Статус: <strong>${getStatusText(order.status)}</strong></div>
+                <div class="meta">Сумма: ₽${order.total_price.toFixed(2)}</div>
             `;
             
             if (currentUser && (currentUser.role === 'chef' || currentUser.role === 'admin')) {
@@ -889,7 +884,7 @@ async function loadOrders() {
                             style="width: 100%; margin-top: 10px; font-size: 12px; padding: 8px;"
                             onclick="markOrderReady(${order.id})"
                         >
-                            Order ready
+                            🟢 Заказ готов
                         </button>
                     `;
                 }
@@ -904,7 +899,7 @@ async function loadOrders() {
         document.getElementById('statActive').textContent = active;
         document.getElementById('statOrders').textContent = orders.length;
     } catch (error) {
-        console.error('Error loading orders:', error);
+        console.error('Ошибка загрузки заказов:', error);
     }
 }
 
@@ -917,14 +912,14 @@ async function markOrderReady(orderId) {
         });
 
         if (!response.ok) {
-            throw new Error('Error updating order status');
+            throw new Error('Ошибка при обновлении статуса заказа');
         }
 
-        alert('SUCCESS Order marked as ready!');
+        alert('✅ Заказ отмечен как готовый!');
         loadOrders();
     } catch (error) {
-        console.error('Error marking order ready:', error);
-        alert('ERROR: ' + error.message);
+        console.error('Ошибка обновления заказа:', error);
+        alert('❌ Ошибка: ' + error.message);
     }
 }
 
@@ -934,24 +929,24 @@ function showOrderDetails(order) {
         order.items.forEach(item => {
             itemsHtml += `
                 <div style="padding: 8px; background: #f9f9f9; margin-bottom: 8px; border-radius: 4px;">
-                    <strong>${item.name || 'Item'}</strong><br>
-                    Qty: ${item.quantity} x Rubles ${item.price.toFixed(2)}
+                    <strong>${item.name || 'Товар'}</strong><br>
+                    Кол-во: ${item.quantity} × ₽${item.price.toFixed(2)}
                 </div>
             `;
         });
     } else {
-        itemsHtml += '<p style="color: #999;">No items in order</p>';
+        itemsHtml += '<p style="color: #999;">Нет товаров в заказе</p>';
     }
     itemsHtml += '</div>';
 
     document.getElementById('orderDetails').innerHTML = `
         <div style="margin-bottom: 15px;">
-            <h4>Order #${order.id}</h4>
-            <p><strong>Table:</strong> #${order.table_id}</p>
-            <p><strong>Status:</strong> ${getStatusText(order.status)}</p>
-            <p><strong>Total:</strong> Rubles ${order.total_price.toFixed(2)}</p>
+            <h4>Заказ #${order.id}</h4>
+            <p><strong>Стол:</strong> №${order.table_id}</p>
+            <p><strong>Статус:</strong> ${getStatusText(order.status)}</p>
+            <p><strong>Сумма:</strong> ₽${order.total_price.toFixed(2)}</p>
         </div>
-        <h4>Items:</h4>
+        <h4>Товары:</h4>
         ${itemsHtml}
     `;
     
@@ -960,20 +955,20 @@ function showOrderDetails(order) {
 
 function getStatusText(status) {
     const statuses = {
-        'pending': 'Waiting',
-        'confirmed': 'Confirmed',
-        'ready': 'Ready',
-        'completed': 'Completed',
-        'cancelled': 'Cancelled'
+        'pending': '⏳ Ожидание',
+        'confirmed': '✅ Подтвержден',
+        'ready': '🟢 Готово',
+        'completed': '✔️ Завершен',
+        'cancelled': '❌ Отменен'
     };
     return statuses[status] || status;
 }
 
 function getRoleText(role) {
     const roles = {
-        'chef': 'Chef',
-        'waiter': 'Waiter',
-        'admin': 'Administrator'
+        'chef': '👨‍🍳 Повар',
+        'waiter': '👔 Официант',
+        'admin': '👨‍💼 Администратор'
     };
     return roles[role] || role;
 }
@@ -985,5 +980,5 @@ setInterval(() => {
 }, 3000);
 
 window.addEventListener('DOMContentLoaded', () => {
-    console.log('SUCCESS App initialized');
+    console.log('✅ App initialized');
 });
