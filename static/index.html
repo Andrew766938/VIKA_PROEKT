@@ -177,6 +177,7 @@
             color: #0288d1;
             font-size: 14px;
             line-height: 1.5;
+            border-left: 4px solid #0288d1;
         }
 
         /* APP SECTION */
@@ -220,6 +221,7 @@
         #accountInfo h3 {
             margin: 0 0 5px 0;
             font-size: 16px;
+            font-weight: 600;
         }
 
         #accountInfo p {
@@ -235,6 +237,7 @@
             border-radius: 6px;
             cursor: pointer;
             font-weight: 600;
+            transition: all 0.3s;
         }
 
         #logoutBtn:hover {
@@ -507,6 +510,12 @@
             border: none;
             font-size: 20px;
             cursor: pointer;
+            color: #999;
+            transition: color 0.3s;
+        }
+
+        .modal-header button:hover {
+            color: #333;
         }
 
         .modal-body {
@@ -538,7 +547,7 @@
             <div class="auth-card">
                 <h2>🍽️ Platter Flow</h2>
                 <div class="info-box">
-                    <strong>Важно:</strong> Роль привязана к вашему аккаунту. При входе под своим логином вы получите соответствующие права.
+                    <strong>ℹ️ Важно:</strong> Роль привязана к вашему аккаунту. При входе под своим логином вы получите соответствующие права.
                 </div>
                 <form class="auth-form" id="loginForm">
                     <div class="form-group">
@@ -549,14 +558,14 @@
                         <label>Пароль</label>
                         <input type="password" id="loginPass" placeholder="Введите пароль" required>
                     </div>
-                    <button type="button" class="btn btn-primary" id="doLogin">Вход</button>
+                    <button type="button" class="btn btn-primary" id="doLogin">🔐 Вход</button>
                 </form>
             </div>
 
             <div class="test-credentials">
                 <h3>📋 Тестовые данные</h3>
                 <div class="test-user">
-                    <h4>🧑‍💼 Официант</h4>
+                    <h4>👔 Официант</h4>
                     <p>Логин: <strong>ofikNum1</strong></p>
                     <p>Пароль: <strong>123321</strong></p>
                 </div>
@@ -589,8 +598,8 @@
         <div class="app-body">
             <div class="sidebar">
                 <button class="menu-btn active" data-tab="menuTab">📋 Меню</button>
-                <button class="menu-btn" data-tab="tablesTab">🙘 Столы</button>
-                <button class="menu-btn" data-tab="ordersTab">🛒 Заказы</button>
+                <button class="menu-btn" data-tab="tablesTab">🍽️ Столы</button>
+                <button class="menu-btn" data-tab="ordersTab">📦 Заказы</button>
                 <button class="menu-btn hidden" id="employeesMenuBtn" data-tab="employeesTab">👥 Сотрудники</button>
             </div>
             <div class="main-content">
@@ -617,11 +626,11 @@
                     <div class="items-grid" id="menuContent"></div>
                 </div>
                 <div class="tabpane hidden" id="tablesTab">
-                    <h2>🙘 Столы</h2>
+                    <h2>🍽️ Столы</h2>
                     <div class="items-grid" id="tablesGrid"></div>
                 </div>
                 <div class="tabpane hidden" id="ordersTab">
-                    <h2>🛒 Заказы</h2>
+                    <h2>📦 Заказы</h2>
                     <div class="orders-list" id="ordersList"></div>
                 </div>
                 <div class="tabpane hidden" id="employeesTab">
@@ -703,6 +712,6 @@
         </div>
     </div>
 
-    <script src="/static/js/app.js"></script>
+    <script src="/static/js/app.js?v=1.0.0"></script>
 </body>
 </html>
