@@ -15,8 +15,8 @@ def hash_password(password: str) -> str:
 
 @router.get("/", response_model=List[UserResponse])
 def get_all_employees(db: Session = Depends(get_db)):
-    """Get all employees"""
-    employees = db.query(User).all()
+    """Get all employees (only staff, exclude regular users)"""
+    employees = db.query(User).filter(User.role != 'user').all()
     return employees
 
 @router.get("/role/{role}", response_model=List[UserResponse])
