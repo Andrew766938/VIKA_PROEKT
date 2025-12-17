@@ -4,6 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from pathlib import Path
+from app.database.core import Base, engine
 
 # Import all routers
 from app.api.auth import router as auth_router
@@ -17,6 +18,9 @@ app = FastAPI(
     description="API for restaurant management system",
     version="1.0.0"
 )
+
+# Create tables on startup
+Base.metadata.create_all(bind=engine)
 
 # Add CORS middleware
 app.add_middleware(
