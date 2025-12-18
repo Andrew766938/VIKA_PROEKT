@@ -485,23 +485,24 @@ async function loadMenuForManagement() {
                 itemEl.className = 'item';
                 itemEl.setAttribute('data-menu-item-id', item.id);
                 
-                const btnElement = document.createElement('button');
-                btnElement.className = 'btn btn-danger';
-                btnElement.style.cssText = 'width: 100%; margin-top: 10px; font-size: 12px; padding: 8px;';
-                btnElement.innerHTML = '🗑️ Удалить';
-                btnElement.onclick = (e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    deleteMenuItem(item.id);
-                };
-                
+                // Set HTML content first
                 itemEl.innerHTML = `
                     <div class="name">${item.name}</div>
                     <div class="desc">${item.description || 'Без описания'}</div>
                     <div class="meta">₽${item.price.toFixed(2)}</div>
                     <small style="color: #999; display: block; margin-bottom: 10px;">${item.category}</small>
+                    <button class="btn btn-danger" style="width: 100%; margin-top: 10px; font-size: 12px; padding: 8px;">🗑️ Удалить</button>
                 `;
-                itemEl.appendChild(btnElement);
+                
+                // Then attach event listener to button
+                const deleteBtn = itemEl.querySelector('.btn.btn-danger');
+                deleteBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    console.log('🗑️ Удаление блюда ID:', item.id);
+                    deleteMenuItem(item.id);
+                });
+                
                 menuManageContent.appendChild(itemEl);
             });
         }
@@ -564,10 +565,9 @@ async function deleteMenuItem(itemId) {
     if (!confirm('⚠️ Уверены? Это действие невозможно отменить.')) return;
     
     const id = parseInt(itemId, 10);
+    console.log('🗑️ Начало удаления блюда ID:', id);
     
     try {
-        console.log('🗑️ АДМИН удаляет блюдо ID:', id);
-        
         const response = await fetch(`${API_URL}/api/menu/${id}`, {
             method: 'DELETE',
             headers: { 'Content-Type': 'application/json' }
@@ -650,22 +650,23 @@ async function loadTablesForManagement() {
                 tableEl.setAttribute('data-table-id', table.id);
                 tableEl.style.borderTop = table.is_occupied ? '4px solid #e74c3c' : '4px solid #2ecc71';
                 
-                const btnElement = document.createElement('button');
-                btnElement.className = 'btn btn-danger';
-                btnElement.style.cssText = 'width: 100%; margin-top: 10px; font-size: 12px; padding: 8px;';
-                btnElement.innerHTML = '🗑️ Удалить';
-                btnElement.onclick = (e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    deleteTable(table.id);
-                };
-                
+                // Set HTML content first
                 tableEl.innerHTML = `
                     <div class="name">Стол №${table.table_number}</div>
                     <div class="desc">Мест: ${table.seats}</div>
                     <div class="meta" style="color: ${table.is_occupied ? '#e74c3c' : '#2ecc71'};">${table.is_occupied ? '🔴 Занят' : '🟢 Свободен'}</div>
+                    <button class="btn btn-danger" style="width: 100%; margin-top: 10px; font-size: 12px; padding: 8px;">🗑️ Удалить</button>
                 `;
-                tableEl.appendChild(btnElement);
+                
+                // Then attach event listener to button
+                const deleteBtn = tableEl.querySelector('.btn.btn-danger');
+                deleteBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    console.log('🗑️ Удаление стола ID:', table.id);
+                    deleteTable(table.id);
+                });
+                
                 tablesManageContent.appendChild(tableEl);
             });
         }
@@ -723,10 +724,9 @@ async function deleteTable(tableId) {
     if (!confirm('⚠️ Уверены? Это действие невозможно отменить.')) return;
     
     const id = parseInt(tableId, 10);
+    console.log('🗑️ Начало удаления стола ID:', id);
     
     try {
-        console.log('🗑️ АДМИН удаляет стол ID:', id);
-        
         const response = await fetch(`${API_URL}/api/tables/${id}`, {
             method: 'DELETE',
             headers: { 'Content-Type': 'application/json' }
