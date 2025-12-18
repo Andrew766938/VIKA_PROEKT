@@ -926,13 +926,22 @@ async function loadOrders() {
             if (currentUser && (currentUser.role === 'chef' || currentUser.role === 'admin')) {
                 if (order.status === 'pending' || order.status === 'confirmed') {
                     frontHtml += `
-                        <button 
-                            class="btn btn-primary" 
-                            style="width: 100%; margin-top: 10px; font-size: 12px; padding: 8px;"
-                            onclick="markOrderReady(${order.id})"
-                        >
-                            🟢 Заказ готов
-                        </button>
+                        <div style="display: flex; gap: 8px; margin-top: 10px;">
+                            <button 
+                                class="btn btn-primary" 
+                                style="flex: 1; font-size: 12px; padding: 8px;"
+                                onclick="markOrderReady(${order.id})"
+                            >
+                                🟢 Заказ готов
+                            </button>
+                            <button 
+                                class="btn btn-danger" 
+                                style="width: 40px; font-size: 12px; padding: 8px;"
+                                onclick="deleteOrder(${order.id})"
+                            >
+                                🗑️
+                            </button>
+                        </div>
                     `;
                 }
             }
@@ -1001,6 +1010,26 @@ async function markOrderReady(orderId) {
         console.error('Ошибка обновления заказа:', error);
         alert('❌ Ошибка: ' + error.message);
         loadOrders();
+    }
+}
+
+async function deleteOrder(orderId) {
+    if (!confirm('⚠️ Удалить этот заказ?')) return;
+    
+    try {
+        const response = await fetch(`${API_URL}/api/orders/${orderId}`, {
+            method: 'DELETE'
+        });
+
+        if (!response.ok) {
+            throw new Error('Ошибка при удалении заказа');
+        }
+        
+        alert('✅ Заказ удален');
+        loadOrders();
+    } catch (error) {
+        console.error('Ошибка удаления заказа:', error);
+        alert('❌ Ошибка: ' + error.message);
     }
 }
 
