@@ -81,29 +81,44 @@ async function handleLogin() {
             document.getElementById('userName').textContent = data.full_name;
             document.getElementById('userRole').textContent = getRoleText(data.role);
 
+            const menuBtn = document.getElementById('menuBtn');
             const ordersMenuBtn = document.getElementById('ordersMenuBtn');
             const cartBtn = document.getElementById('cartMenuBtn');
             const tablesStatusBtn = document.getElementById('tablesStatusBtn');
             const employeesBtn = document.getElementById('employeesMenuBtn');
             const tablesManageBtn = document.getElementById('tablesManageBtn');
+            const menuManageBtn = document.getElementById('menuManageBtn');
             
             if (data.role === 'admin') {
+                // Hide menu button for admin
+                if (menuBtn) menuBtn.classList.add('hidden');
                 if (ordersMenuBtn) ordersMenuBtn.classList.add('hidden');
                 if (tablesStatusBtn) tablesStatusBtn.classList.add('hidden');
                 if (tablesManageBtn) tablesManageBtn.classList.remove('hidden');
+                if (menuManageBtn) menuManageBtn.classList.remove('hidden');
                 employeesBtn.classList.remove('hidden');
                 document.getElementById('statEmployeeCard').classList.remove('hidden');
                 cartBtn.classList.add('hidden');
+                
+                // Switch to management tab
+                handleTabSwitch(tablesManageBtn);
             } else if (data.role === 'chef') {
+                if (menuBtn) menuBtn.classList.remove('hidden');
                 if (ordersMenuBtn) ordersMenuBtn.classList.remove('hidden');
                 if (tablesStatusBtn) tablesStatusBtn.classList.add('hidden');
                 if (tablesManageBtn) tablesManageBtn.classList.add('hidden');
+                if (menuManageBtn) menuManageBtn.classList.add('hidden');
                 employeesBtn.classList.add('hidden');
                 cartBtn.classList.add('hidden');
+                
+                // Switch to orders tab
+                handleTabSwitch(ordersMenuBtn);
             } else if (data.role === 'waiter') {
+                if (menuBtn) menuBtn.classList.remove('hidden');
                 if (ordersMenuBtn) ordersMenuBtn.classList.add('hidden');
                 if (tablesStatusBtn) tablesStatusBtn.classList.remove('hidden');
                 if (tablesManageBtn) tablesManageBtn.classList.add('hidden');
+                if (menuManageBtn) menuManageBtn.classList.add('hidden');
                 employeesBtn.classList.add('hidden');
                 cartBtn.classList.remove('hidden');
             }
@@ -116,6 +131,7 @@ async function handleLogin() {
             
             if (data.role === 'admin') {
                 loadEmployees();
+                loadTablesForManagement();
             }
 
             console.log('✅ Успешный вход:', data);
@@ -178,6 +194,8 @@ function handleTabSwitch(btn) {
         loadTablesForManagement();
     } else if (tabName === 'tablesStatusTab') {
         loadTablesForStatus();
+    } else if (tabName === 'menuManageTab') {
+        loadMenuForManagement();
     }
 }
 
@@ -320,6 +338,122 @@ async function loadMenuItems() {
     } catch (error) {
         console.error('Ошибка загрузки меню:', error);
         document.getElementById('menuContent').innerHTML = '<p style="color: red;">❌ Ошибка загружки меню</p>';
+    }
+}
+
+// ADMIN: Menu Management
+async function loadMenuForManagement() {
+    try {
+        const response = await fetch(`${API_URL}/api/menu/`);
+        const items = await response.json();
+        
+        const menuManageContent = document.getElementById('menuManageContent');
+        menuManageContent.innerHTML = '';
+        
+        if (items.length === 0) {
+            menuManageContent.innerHTML = '<p style="text-align: center; color: #999;">Нет блюд в меню</p>';
+        } else {
+            items.forEach(item => {
+                const itemEl = document.createElement('div');
+                itemEl.className = 'item';
+                itemEl.setAttribute('data-menu-item-id', item.id);
+                itemEl.innerHTML = `
+                    <div class="name">${item.name}</div>
+                    <div class="desc">${item.description || 'Без описания'}</div>
+                    <div class="meta">₽${item.price.toFixed(2)}</div>
+                    <small style="color: #999; display: block; margin-bottom: 10px;">${item.category}</small>
+                    <button class="btn btn-danger" style="width: 100%; margin-top: 10px; font-size: 12px; padding: 8px;" onclick="deleteMenuItem(${item.id})">🗑️ Удалить</button>
+                `;
+                menuManageContent.appendChild(itemEl);
+            });
+        }
+    } catch (error) {
+        console.error('Ошибка загрузки меню для управления:', error);
+    }
+}
+
+function openAddMenuItemModal() {
+    document.getElementById('addMenuItemForm').reset();
+    document.getElementById('addMenuItemModal').classList.remove('hidden');
+}
+
+function closeAddMenuItemModal() {
+    document.getElementById('addMenuItemModal').classList.add('hidden');
+}
+
+async function saveMenuItem() {
+    const name = document.getElementById('itemName').value;
+    const description = document.getElementById('itemDescription').value;
+    const price = parseFloat(document.getElementById('itemPrice').value);
+    const category = document.getElementById('itemCategory').value;
+    
+    if (!name || !price || !category) {
+        alert('❌ Пожалуйста, заполните обязательные поля');
+        return;
+    }
+    
+    try {
+        const response = await fetch(`${API_URL}/api/menu/`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                name: name,
+                description: description,
+                price: price,
+                category: category
+            })
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            alert('❌ Ошибка: ' + (errorData.detail || 'Неизвестная ошибка'));
+            return;
+        }
+
+        const item = await response.json();
+        alert(`✅ Блюдо "${item.name}" добавлено в меню`);
+        closeAddMenuItemModal();
+        loadMenuForManagement();
+        loadMenuItems(); // Update menu for waiter
+    } catch (error) {
+        console.error('Ошибка сохранения блюда:', error);
+        alert('❌ Ошибка: ' + error.message);
+    }
+}
+
+async function deleteMenuItem(itemId) {
+    if (!confirm('⚠️ Уверены? Это действие невозможно отменить.')) return;
+    
+    const id = parseInt(itemId, 10);
+    
+    try {
+        console.log('🗑️ Удаление блюда с ID:', id);
+        
+        const response = await fetch(`${API_URL}/api/menu/${id}`, {
+            method: 'DELETE',
+            headers: { 'Content-Type': 'application/json' }
+        });
+
+        console.log('📥 Ответ сервера:', response.status, response.statusText);
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.detail || 'Ошибка удаления');
+        }
+        
+        // Remove item from DOM immediately
+        const itemElement = document.querySelector(`[data-menu-item-id="${id}"]`);
+        if (itemElement) {
+            itemElement.remove();
+        }
+        
+        alert('✅ Блюдо удалено из меню');
+        loadMenuForManagement();
+        loadMenuItems(); // Update menu for waiter
+    } catch (error) {
+        console.error('Ошибка удаления блюда:', error);
+        alert('❌ Ошибка: ' + error.message);
+        loadMenuForManagement();
     }
 }
 
