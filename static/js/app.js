@@ -369,6 +369,7 @@ async function loadMenuForManagement() {
             items.forEach(item => {
                 const itemEl = document.createElement('div');
                 itemEl.className = 'item';
+                itemEl.setAttribute('data-menu-item-id', item.id);
                 itemEl.innerHTML = `
                     <div class="name">${item.name}</div>
                     <div class="desc">${item.description}</div>
@@ -438,11 +439,25 @@ async function deleteMenuItem(itemId) {
     const id = parseInt(itemId, 10);
     
     try {
+        console.log('🗑️ Удаление блюда с ID:', id);
+        
         const response = await fetch(`${API_URL}/api/menu/${id}`, {
-            method: 'DELETE'
+            method: 'DELETE',
+            headers: { 'Content-Type': 'application/json' }
         });
 
-        if (!response.ok) throw new Error('Ошибка удаления');
+        console.log('📥 Ответ сервера:', response.status, response.statusText);
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.detail || 'Ошибка удаления');
+        }
+        
+        // Remove item from DOM immediately
+        const itemElement = document.querySelector(`[data-menu-item-id="${id}"]`);
+        if (itemElement) {
+            itemElement.remove();
+        }
         
         alert('✅ Блюдо удалено');
         loadMenuForManagement();
@@ -450,6 +465,8 @@ async function deleteMenuItem(itemId) {
     } catch (error) {
         console.error('Ошибка удаления блюда:', error);
         alert('❌ Ошибка: ' + error.message);
+        // Reload on error
+        loadMenuForManagement();
     }
 }
 
@@ -468,6 +485,7 @@ async function loadTablesForManagement() {
             tables.forEach(table => {
                 const tableEl = document.createElement('div');
                 tableEl.className = 'item';
+                tableEl.setAttribute('data-table-id', table.id);
                 tableEl.style.borderTop = table.is_occupied ? '4px solid #e74c3c' : '4px solid #2ecc71';
                 tableEl.innerHTML = `
                     <div class="name">Стол №${table.table_number}</div>
@@ -533,17 +551,33 @@ async function deleteTable(tableId) {
     const id = parseInt(tableId, 10);
     
     try {
+        console.log('🗑️ Удаление стола с ID:', id);
+        
         const response = await fetch(`${API_URL}/api/tables/${id}`, {
-            method: 'DELETE'
+            method: 'DELETE',
+            headers: { 'Content-Type': 'application/json' }
         });
 
-        if (!response.ok) throw new Error('Ошибка удаления');
+        console.log('📥 Ответ сервера:', response.status, response.statusText);
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.detail || 'Ошибка удаления');
+        }
+        
+        // Remove item from DOM immediately
+        const tableElement = document.querySelector(`[data-table-id="${id}"]`);
+        if (tableElement) {
+            tableElement.remove();
+        }
         
         alert('✅ Стол удален');
         loadTablesForManagement();
     } catch (error) {
         console.error('Ошибка удаления стола:', error);
         alert('❌ Ошибка: ' + error.message);
+        // Reload on error
+        loadTablesForManagement();
     }
 }
 
@@ -1046,13 +1080,27 @@ async function markOrderReady(orderId) {
 async function deleteOrder(orderId) {
     if (!confirm('⚠️ Удалить этот заказ?')) return;
     
+    const id = parseInt(orderId, 10);
+    
     try {
-        const response = await fetch(`${API_URL}/api/orders/${orderId}`, {
-            method: 'DELETE'
+        console.log('🗑️ Удаление заказа с ID:', id);
+        
+        const response = await fetch(`${API_URL}/api/orders/${id}`, {
+            method: 'DELETE',
+            headers: { 'Content-Type': 'application/json' }
         });
 
+        console.log('📥 Ответ сервера:', response.status, response.statusText);
+
         if (!response.ok) {
-            throw new Error('Ошибка при удалении заказа');
+            const errorData = await response.json();
+            throw new Error(errorData.detail || 'Ошибка при удалении заказа');
+        }
+        
+        // Remove order from DOM immediately
+        const orderElement = document.querySelector(`[data-order-id="${id}"]`)?.closest('.order-container');
+        if (orderElement) {
+            orderElement.remove();
         }
         
         alert('✅ Заказ удален');
@@ -1060,6 +1108,8 @@ async function deleteOrder(orderId) {
     } catch (error) {
         console.error('Ошибка удаления заказа:', error);
         alert('❌ Ошибка: ' + error.message);
+        // Reload on error
+        loadOrders();
     }
 }
 
