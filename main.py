@@ -8,7 +8,7 @@ from sqlalchemy import create_engine
 from sqladmin import Admin, ModelView
 
 from app.database.core import Base, engine
-from app.database.models import User, MenuItem, Table, Order, OrderItem
+from app.database.models import User, MenuItem, Table
 
 # Import all routers
 from app.api.auth import router as auth_router
@@ -71,28 +71,12 @@ class TableAdmin(ModelView, model=Table):
     name_plural = "Столы"
     icon = "fa-solid fa-chair"
 
-class OrderAdmin(ModelView, model=Order):
-    """Админ-панель для заказов"""
-    column_list = [Order.id, Order.table_id, Order.status, Order.total_price, Order.created_at]
-    name = "Заказ"
-    name_plural = "Заказы"
-    icon = "fa-solid fa-clipboard-list"
-
-class OrderItemAdmin(ModelView, model=OrderItem):
-    """Админ-панель для позиций заказа"""
-    column_list = [OrderItem.id, OrderItem.order_id, OrderItem.menu_item_id, OrderItem.quantity]
-    name = "Позиция заказа"
-    name_plural = "Позиции заказа"
-    icon = "fa-solid fa-list"
-
 # Регистрируем админ-панель
 admin = Admin(app, engine, title="🍽️ Platter Flow Admin", authentication_backend=None)
 
 admin.add_model_view(UserAdmin)
 admin.add_model_view(MenuItemAdmin)
 admin.add_model_view(TableAdmin)
-admin.add_model_view(OrderAdmin)
-admin.add_model_view(OrderItemAdmin)
 
 # ==================== Routes ====================
 
