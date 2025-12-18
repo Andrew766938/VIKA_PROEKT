@@ -468,7 +468,7 @@ async function loadMenuItems() {
     }
 }
 
-// ADMIN: Menu Management
+// ADMIN: Menu Management with Event Delegation
 async function loadMenuForManagement() {
     try {
         const response = await fetch(`${API_URL}/api/menu/`);
@@ -485,24 +485,13 @@ async function loadMenuForManagement() {
                 itemEl.className = 'item';
                 itemEl.setAttribute('data-menu-item-id', item.id);
                 
-                // Set HTML content first
                 itemEl.innerHTML = `
                     <div class="name">${item.name}</div>
                     <div class="desc">${item.description || 'Без описания'}</div>
                     <div class="meta">₽${item.price.toFixed(2)}</div>
                     <small style="color: #999; display: block; margin-bottom: 10px;">${item.category}</small>
-                    <button class="btn btn-danger" style="width: 100%; margin-top: 10px; font-size: 12px; padding: 8px;">🗑️ Удалить</button>
+                    <button class="btn btn-danger delete-menu-btn" style="width: 100%; margin-top: 10px; font-size: 12px; padding: 8px;" data-menu-id="${item.id}">🗑️ Удалить</button>
                 `;
-                
-                // Then attach event listener to button
-                const deleteBtn = itemEl.querySelector('.btn.btn-danger');
-                deleteBtn.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    console.log('🗑️ Удаление блюда ID:', item.id);
-                    deleteMenuItem(item.id);
-                });
-                
                 menuManageContent.appendChild(itemEl);
             });
         }
@@ -511,6 +500,28 @@ async function loadMenuForManagement() {
         console.error('Ошибка загрузки меню для управления:', error);
     }
 }
+
+// Event delegation for menu delete buttons
+document.addEventListener('click', (e) => {
+    if (e.target.classList.contains('delete-menu-btn')) {
+        e.preventDefault();
+        e.stopPropagation();
+        const menuId = e.target.getAttribute('data-menu-id');
+        console.log('🗑️ Нажата кнопка удаления блюда ID:', menuId);
+        deleteMenuItem(menuId);
+    }
+});
+
+// Event delegation for table delete buttons
+document.addEventListener('click', (e) => {
+    if (e.target.classList.contains('delete-table-btn')) {
+        e.preventDefault();
+        e.stopPropagation();
+        const tableId = e.target.getAttribute('data-table-id');
+        console.log('🗑️ Нажата кнопка удаления стола ID:', tableId);
+        deleteTable(tableId);
+    }
+});
 
 function openAddMenuItemModal() {
     document.getElementById('addMenuItemForm').reset();
@@ -632,7 +643,7 @@ function addToCartById(itemId) {
     alert(`✅ "${menuItem.name}" добавлено в заказ!`);
 }
 
-// ADMIN: Table Management
+// ADMIN: Table Management with Event Delegation
 async function loadTablesForManagement() {
     try {
         const response = await fetch(`${API_URL}/api/tables/`);
@@ -650,23 +661,12 @@ async function loadTablesForManagement() {
                 tableEl.setAttribute('data-table-id', table.id);
                 tableEl.style.borderTop = table.is_occupied ? '4px solid #e74c3c' : '4px solid #2ecc71';
                 
-                // Set HTML content first
                 tableEl.innerHTML = `
                     <div class="name">Стол №${table.table_number}</div>
                     <div class="desc">Мест: ${table.seats}</div>
                     <div class="meta" style="color: ${table.is_occupied ? '#e74c3c' : '#2ecc71'};">${table.is_occupied ? '🔴 Занят' : '🟢 Свободен'}</div>
-                    <button class="btn btn-danger" style="width: 100%; margin-top: 10px; font-size: 12px; padding: 8px;">🗑️ Удалить</button>
+                    <button class="btn btn-danger delete-table-btn" style="width: 100%; margin-top: 10px; font-size: 12px; padding: 8px;" data-table-id="${table.id}">🗑️ Удалить</button>
                 `;
-                
-                // Then attach event listener to button
-                const deleteBtn = tableEl.querySelector('.btn.btn-danger');
-                deleteBtn.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    console.log('🗑️ Удаление стола ID:', table.id);
-                    deleteTable(table.id);
-                });
-                
                 tablesManageContent.appendChild(tableEl);
             });
         }
