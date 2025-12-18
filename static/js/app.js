@@ -120,7 +120,7 @@ async function handleLogin() {
                 if (menuManageBtn) menuManageBtn.classList.add('hidden');
                 cartBtn.classList.add('hidden');
                 
-                console.log('✅ ПОВАР: Видит кнопку "Удалить заказ"');
+                console.log('✅ ПОВАР: Видит кнопку "Удалить заказ" ДЛЯ ВСЕХ статусов');
                 
                 // Switch to orders tab
                 handleTabSwitch(ordersMenuBtn);
@@ -927,7 +927,7 @@ async function loadOrders() {
                         </div>
                     `;
                 }
-                // Show only "Delete" button for ready/completed orders
+                // Show delete button for all other statuses (ready, completed)
                 else if (order.status === 'ready' || order.status === 'completed') {
                     frontHtml += `
                         <button 
