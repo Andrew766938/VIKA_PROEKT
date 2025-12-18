@@ -61,6 +61,12 @@ async function handleLogin() {
         return;
     }
 
+    // 🔒 ВАЛИДАЦИЯ ПАРОЛЯ - МИНИМУМ 6 СИМВОЛОВ
+    if (password.length < 6) {
+        alert('🔒 Ошибка: Пароль должен содержать минимум 6 символов!');
+        return;
+    }
+
     try {
         if (isLoginMode) {
             const response = await fetch(`${API_URL}/api/auth/login`, {
@@ -120,7 +126,7 @@ async function handleLogin() {
                 
                 handleTabSwitch(ordersMenuBtn);
             } else if (data.role === 'waiter') {
-                console.log('👔 ОФИЦИАНТ вошёл');
+                console.log('🧑‍💼 ОФИЦИАНТ вошёл');
                 if (menuBtn) menuBtn.classList.remove('hidden');
                 if (ordersMenuBtn) ordersMenuBtn.classList.add('hidden');
                 if (tablesStatusBtn) tablesStatusBtn.classList.remove('hidden');
@@ -164,6 +170,12 @@ async function handleLogin() {
                 return;
             }
 
+            // 🔒 ВАЛИДАЦИЯ ПАРОЛЯ - МИНИМУМ 6 СИМВОЛОВ (при регистрации)
+            if (password.length < 6) {
+                alert('🔒 Ошибка: Пароль должен содержать минимум 6 символов!');
+                return;
+            }
+
             const response = await fetch(`${API_URL}/api/auth/register`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -176,7 +188,7 @@ async function handleLogin() {
                 return;
             }
 
-            alert('✅ Аккаунт успешно создан! Теперь войдите.');
+            alert('✅ Аккаунт успешно создан!\n\nТеперь войдите.');
             toggleAuthMode();
             console.log('✅ Регистрация успешна');
         }
@@ -464,7 +476,7 @@ async function loadMenuItems() {
         document.getElementById('statOrders').textContent = items.length;
     } catch (error) {
         console.error('Ошибка загрузки меню:', error);
-        document.getElementById('menuContent').innerHTML = '<p style="color: red;">❌ Ошибка загужки меню</p>';
+        document.getElementById('menuContent').innerHTML = '<p style="color: red;">❌ Ошибка загуки меню</p>';
     }
 }
 
@@ -584,7 +596,7 @@ async function deleteMenuItem(itemId) {
             headers: { 'Content-Type': 'application/json' }
         });
 
-        console.log('📥 Ответ сервера:', response.status, response.statusText);
+        console.log('📦 Ответ сервера:', response.status, response.statusText);
 
         if (!response.ok) {
             let errorMessage = 'Ошибка удаления';
@@ -737,7 +749,7 @@ async function deleteTable(tableId) {
             headers: { 'Content-Type': 'application/json' }
         });
 
-        console.log('📥 Ответ сервера:', response.status, response.statusText);
+        console.log('📦 Ответ сервера:', response.status, response.statusText);
 
         if (!response.ok) {
             let errorMessage = 'Ошибка удаления';
@@ -778,7 +790,7 @@ async function loadEmployees() {
         const response = await fetch(`${API_URL}/api/employees/`);
         
         if (!response.ok) {
-            throw new Error(`Ошибка загужки сотрудников: ${response.status}`);
+            throw new Error(`Ошибка загузки сотрудников: ${response.status}`);
         }
         
         const employees = await response.json();
@@ -883,7 +895,7 @@ function loadCart() {
     if (cart.length === 0) {
         cartContent.innerHTML = `
             <div style="text-align: center; padding: 40px; color: #999;">
-                <p>📝 Ваш заказ пуст</p>
+                <p>📝 Ваш заказ пусто</p>
                 <p>Добавьте блюда из меню</p>
             </div>
         `;
@@ -986,7 +998,7 @@ async function createOrder() {
     }
     
     if (cart.length === 0) {
-        alert('❌ Заказ пуст');
+        alert('❌ Заказ пусто');
         return;
     }
     
@@ -1120,7 +1132,7 @@ async function loadOrders() {
                 <div class="name">✅ Заказ #${order.id} готов!</div>
                 <div class="meta">Стол №${order.table_id}</div>
                 <div class="meta">Сумма: ₽${order.total_price.toFixed(2)}</div>
-                <div style="margin-top: 10px; font-size: 18px; font-weight: bold;">🍴 Можно подавать!</div>
+                <div style="margin-top: 10px; font-size: 18px; font-weight: bold;">🍽️ Можно подавать!</div>
             `;
             
             orderEl.appendChild(frontFace);
@@ -1140,7 +1152,7 @@ async function loadOrders() {
         document.getElementById('statActive').textContent = active;
         document.getElementById('statOrders').textContent = orders.length;
     } catch (error) {
-        console.error('Ошибка загружки заказов:', error);
+        console.error('Ошибка загрузки заказов:', error);
     }
 }
 
@@ -1192,7 +1204,7 @@ async function deleteOrder(orderId) {
             headers: { 'Content-Type': 'application/json' }
         });
 
-        console.log('📥 Ответ сервера:', response.status, response.statusText);
+        console.log('📦 Ответ сервера:', response.status, response.statusText);
 
         if (!response.ok) {
             let errorMessage = 'Ошибка при удалении заказа';
@@ -1272,7 +1284,7 @@ function getStatusText(status) {
 function getRoleText(role) {
     const roles = {
         'chef': '👨‍🍳 Повар',
-        'waiter': '👔 Официант',
+        'waiter': '🧑‍💼 Официант',
         'admin': '👨‍💼 Администратор'
     };
     return roles[role] || role;
@@ -1280,8 +1292,5 @@ function getRoleText(role) {
 
 window.addEventListener('DOMContentLoaded', () => {
     console.log('✅ App initialized - Система готова!');
-    console.log('🔐 От пробуйте эти учётные данные:');
-    console.log('   Повар: chefNum1 / chef123');
-    console.log('   Официант: waiterNum1 / waiter123');
-    console.log('   Администратор: adminNum1 / admin123');
+    console.log('🔐 Введите свои учётные данные для входа');
 });
