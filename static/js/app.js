@@ -7,6 +7,7 @@ let isLoginMode = true;
 let cart = [];
 let allMenuItems = [];
 let editingEmployeeId = null;
+let waiterNotifications = []; // Notifications for waiter
 
 // Elements
 const authSection = document.getElementById('authSection');
@@ -77,6 +78,7 @@ async function handleLogin() {
             const data = await response.json();
             currentUser = data;
             cart = [];
+            waiterNotifications = [];
 
             authSection.classList.add('hidden');
             appSection.classList.remove('hidden');
@@ -95,8 +97,7 @@ async function handleLogin() {
             console.log('👤 Пользователь вошёл:', data.role);
             
             if (data.role === 'admin') {
-                console.log('👨‍💼 АДМИН вошёл - настраиваю интерфейс...');
-                // Hide menu button for admin
+                console.log('👨‍💼 АДМИН вошёл');
                 if (menuBtn) menuBtn.classList.add('hidden');
                 if (ordersMenuBtn) ordersMenuBtn.classList.add('hidden');
                 if (tablesStatusBtn) tablesStatusBtn.classList.add('hidden');
@@ -106,12 +107,9 @@ async function handleLogin() {
                 document.getElementById('statEmployeeCard').classList.add('hidden');
                 cartBtn.classList.add('hidden');
                 
-                console.log('✅ АДМИН: Видит кнопки "Удалить стол" и "Удалить блюдо"');
-                
-                // Switch to management tab
                 handleTabSwitch(tablesManageBtn);
             } else if (data.role === 'chef') {
-                console.log('👨‍🍳 ПОВАР вошёл - настраиваю интерфейс...');
+                console.log('👨‍🍳 ПОВАР вошёл');
                 if (menuBtn) menuBtn.classList.remove('hidden');
                 if (ordersMenuBtn) ordersMenuBtn.classList.remove('hidden');
                 if (tablesStatusBtn) tablesStatusBtn.classList.add('hidden');
@@ -120,12 +118,9 @@ async function handleLogin() {
                 if (menuManageBtn) menuManageBtn.classList.add('hidden');
                 cartBtn.classList.add('hidden');
                 
-                console.log('✅ ПОВАР: Видит кнопку "Удалить заказ" ДЛЯ ВСЕХ статусов');
-                
-                // Switch to orders tab
                 handleTabSwitch(ordersMenuBtn);
             } else if (data.role === 'waiter') {
-                console.log('👔 ОФИЦИАНТ вошёл - настраиваю интерфейс...');
+                console.log('👔 ОФИЦиАНТ вошёл');
                 if (menuBtn) menuBtn.classList.remove('hidden');
                 if (ordersMenuBtn) ordersMenuBtn.classList.add('hidden');
                 if (tablesStatusBtn) tablesStatusBtn.classList.remove('hidden');
@@ -133,14 +128,28 @@ async function handleLogin() {
                 if (tablesManageBtn) tablesManageBtn.classList.add('hidden');
                 if (menuManageBtn) menuManageBtn.classList.add('hidden');
                 cartBtn.classList.remove('hidden');
-                
-                console.log('✅ ОФИЦИАНТ: Видит кнопку "Добавить блюдо в заказ"');
             }
 
             loadMenuItems();
             
             if (data.role === 'chef') {
                 loadOrders();
+                // Auto-refresh orders every 2 seconds for chef
+                setInterval(() => {
+                    if (currentUser && currentUser.role === 'chef') {
+                        loadOrders();
+                    }
+                }, 2000);
+            }
+            
+            if (data.role === 'waiter') {
+                // Auto-refresh notifications every 3 seconds for waiter
+                setInterval(() => {
+                    if (currentUser && currentUser.role === 'waiter') {
+                        loadTablesForStatus();
+                        checkForReadyOrders();
+                    }
+                }, 3000);
             }
             
             if (data.role === 'admin') {
@@ -180,6 +189,7 @@ async function handleLogin() {
 function handleLogout() {
     currentUser = null;
     cart = [];
+    waiterNotifications = [];
     authSection.classList.remove('hidden');
     appSection.classList.add('hidden');
     document.getElementById('authForm').reset();
@@ -211,6 +221,108 @@ function handleTabSwitch(btn) {
         loadTablesForStatus();
     } else if (tabName === 'menuManageTab') {
         loadMenuForManagement();
+    }
+}
+
+// Check for ready orders and notify waiter
+async function checkForReadyOrders() {
+    try {
+        const response = await fetch(`${API_URL}/api/orders/`);
+        const orders = await response.json();
+        
+        orders.forEach(order => {
+            if (order.status === 'ready') {
+                // Check if we already notified about this order
+                if (!waiterNotifications.includes(order.id)) {
+                    waiterNotifications.push(order.id);
+                    showWaiterNotification(`🝴 Заказ #${order.id} готов! (Стол №${order.table_id})`, order.id);
+                }
+            }
+        });
+    } catch (error) {
+        console.error('Ошибка проверки готовых заказов:', error);
+    }
+}
+
+// Show notification for waiter
+function showWaiterNotification(message, orderId) {
+    const notification = document.createElement('div');
+    notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
+        color: white;
+        padding: 20px 30px;
+        border-radius: 10px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        font-size: 16px;
+        font-weight: bold;
+        z-index: 10000;
+        animation: slideIn 0.3s ease-out;
+    `;
+    
+    const closeBtn = document.createElement('button');
+    closeBtn.innerHTML = '×';
+    closeBtn.style.cssText = `
+        background: rgba(255,255,255,0.3);
+        border: none;
+        color: white;
+        font-size: 24px;
+        cursor: pointer;
+        margin-left: 15px;
+        padding: 0 5px;
+        border-radius: 4px;
+    `;
+    closeBtn.onclick = () => notification.remove();
+    
+    const completeBtn = document.createElement('button');
+    completeBtn.innerHTML = '✅ Ок';
+    completeBtn.style.cssText = `
+        background: rgba(255,255,255,0.3);
+        border: none;
+        color: white;
+        padding: 8px 15px;
+        margin-left: 10px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-weight: bold;
+    `;
+    completeBtn.onclick = () => {
+        completeOrder(orderId);
+        notification.remove();
+    };
+    
+    notification.innerHTML = message;
+    notification.appendChild(completeBtn);
+    notification.appendChild(closeBtn);
+    document.body.appendChild(notification);
+    
+    // Auto-remove after 8 seconds
+    setTimeout(() => {
+        if (notification.parentElement) {
+            notification.remove();
+        }
+    }, 8000);
+}
+
+// Complete order from notification
+async function completeOrder(orderId) {
+    try {
+        const response = await fetch(`${API_URL}/api/orders/${orderId}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ status: 'completed' })
+        });
+        
+        if (response.ok) {
+            alert('✅ Заказ завершен!');
+            loadTablesForStatus();
+            // Remove from notifications
+            waiterNotifications = waiterNotifications.filter(id => id !== orderId);
+        }
+    } catch (error) {
+        console.error('Ошибка завершения заказа:', error);
     }
 }
 
@@ -430,7 +542,7 @@ async function saveMenuItem() {
         alert(`✅ Блюдо "${item.name}" добавлено в меню`);
         closeAddMenuItemModal();
         loadMenuForManagement();
-        loadMenuItems(); // Update menu for waiter
+        loadMenuItems();
     } catch (error) {
         console.error('Ошибка сохранения блюда:', error);
         alert('❌ Ошибка: ' + error.message);
@@ -458,7 +570,6 @@ async function deleteMenuItem(itemId) {
                 const errorData = await response.json();
                 errorMessage = errorData.detail || errorMessage;
             } catch (e) {
-                // If response is not JSON, use status text
                 errorMessage = response.statusText || errorMessage;
             }
             console.error('❌ Ошибка сервера:', errorMessage);
@@ -466,7 +577,6 @@ async function deleteMenuItem(itemId) {
             return;
         }
         
-        // Remove item from DOM immediately
         const itemElement = document.querySelector(`[data-menu-item-id="${id}"]`);
         if (itemElement) {
             itemElement.remove();
@@ -475,7 +585,7 @@ async function deleteMenuItem(itemId) {
         console.log('✅ Блюдо удалено успешно');
         alert('✅ Блюдо удалено из меню');
         loadMenuForManagement();
-        loadMenuItems(); // Update menu for waiter
+        loadMenuItems();
     } catch (error) {
         console.error('Ошибка удаления блюда:', error);
         alert('❌ Ошибка сети: ' + error.message);
@@ -608,7 +718,6 @@ async function deleteTable(tableId) {
                 const errorData = await response.json();
                 errorMessage = errorData.detail || errorMessage;
             } catch (e) {
-                // If response is not JSON, use status text
                 errorMessage = response.statusText || errorMessage;
             }
             console.error('❌ Ошибка сервера:', errorMessage);
@@ -616,7 +725,6 @@ async function deleteTable(tableId) {
             return;
         }
         
-        // Remove item from DOM immediately
         const tableElement = document.querySelector(`[data-table-id="${id}"]`);
         if (tableElement) {
             tableElement.remove();
@@ -628,7 +736,6 @@ async function deleteTable(tableId) {
     } catch (error) {
         console.error('Ошибка удаления стола:', error);
         alert('❌ Ошибка сети: ' + error.message);
-        // Reload on error
         loadTablesForManagement();
     }
 }
@@ -640,7 +747,7 @@ async function loadEmployees() {
         const response = await fetch(`${API_URL}/api/employees/`);
         
         if (!response.ok) {
-            throw new Error(`Ошибка загрузки сотрудников: ${response.status}`);
+            throw new Error(`Ошибка загружки сотрудников: ${response.status}`);
         }
         
         const employees = await response.json();
@@ -887,7 +994,7 @@ async function createOrder() {
     }
 }
 
-// CHEF: Orders with 3D Flip Animation (SLOWER - 1000ms)
+// CHEF: Orders Management
 async function loadOrders() {
     try {
         const response = await fetch(`${API_URL}/api/orders/`);
@@ -924,7 +1031,7 @@ async function loadOrders() {
             `;
             
             if (currentUser && (currentUser.role === 'chef' || currentUser.role === 'admin')) {
-                // Show "Mark Ready" button only for pending/confirmed orders
+                // ONLY SHOW "MARK READY" BUTTON for pending/confirmed - NOT for ready/completed
                 if (order.status === 'pending' || order.status === 'confirmed') {
                     frontHtml += `
                         <div style="display: flex; gap: 8px; margin-top: 10px;">
@@ -945,8 +1052,7 @@ async function loadOrders() {
                         </div>
                     `;
                 }
-                // FIX: Show delete button for ALL statuses including pending/confirmed
-                // Previously it only showed for ready/completed
+                // Show delete button for other statuses
                 else {
                     frontHtml += `
                         <button 
@@ -1007,7 +1113,7 @@ async function loadOrders() {
         document.getElementById('statActive').textContent = active;
         document.getElementById('statOrders').textContent = orders.length;
     } catch (error) {
-        console.error('Ошибка загрузки заказов:', error);
+        console.error('Ошибка загружки заказов:', error);
     }
 }
 
@@ -1086,7 +1192,6 @@ async function deleteOrder(orderId) {
     } catch (error) {
         console.error('Ошибка удаления заказа:', error);
         alert('❌ Ошибка сети: ' + error.message);
-        // Reload on error
         loadOrders();
     }
 }
@@ -1141,15 +1246,9 @@ function getRoleText(role) {
     return roles[role] || role;
 }
 
-setInterval(() => {
-    if (currentUser && currentUser.role === 'chef') {
-        loadOrders();
-    }
-}, 3000);
-
 window.addEventListener('DOMContentLoaded', () => {
     console.log('✅ App initialized - Система готова!');
-    console.log('🔐 Используйте учётные данные для входа:');
+    console.log('🔐 От пробуйте эти учётные данные:');
     console.log('   Повар: chefNum1 / chef123');
     console.log('   Официант: waiterNum1 / waiter123');
     console.log('   Администратор: adminNum1 / admin123');
