@@ -47,15 +47,19 @@ def update_menu_item(item_id: int, item_data: MenuItemUpdate, db: Session = Depe
 
 @router.delete("/{item_id}")
 def delete_menu_item(item_id: int, db: Session = Depends(get_db)):
-    """Delete menu item"""
+    """Delete menu item (can delete anytime - items are stored as JSON in orders)"""
     try:
         item = db.query(MenuItem).filter(MenuItem.id == item_id).first()
         if not item:
             raise HTTPException(status_code=404, detail="Menu item not found")
         
+        # Menu items can be deleted anytime because they are copied to orders as JSON
+        # This prevents foreign key constraint issues
+        item_name = item.name
         db.delete(item)
         db.commit()
-        return {"message": "Menu item deleted successfully"}
+        
+        return {"message": f"Menu item '{item_name}' deleted successfully"}
     except Exception as e:
         db.rollback()
         print(f"Error deleting menu item: {str(e)}")
