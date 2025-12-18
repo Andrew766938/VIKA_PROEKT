@@ -924,6 +924,7 @@ async function loadOrders() {
             `;
             
             if (currentUser && (currentUser.role === 'chef' || currentUser.role === 'admin')) {
+                // Show "Mark Ready" button only for pending/confirmed orders
                 if (order.status === 'pending' || order.status === 'confirmed') {
                     frontHtml += `
                         <div style="display: flex; gap: 8px; margin-top: 10px;">
@@ -942,6 +943,18 @@ async function loadOrders() {
                                 🗑️
                             </button>
                         </div>
+                    `;
+                }
+                // Show only "Delete" button for ready/completed orders
+                else if (order.status === 'ready' || order.status === 'completed') {
+                    frontHtml += `
+                        <button 
+                            class="btn btn-danger" 
+                            style="width: 100%; margin-top: 10px; font-size: 12px; padding: 8px;"
+                            onclick="deleteOrder(${order.id})"
+                        >
+                            🗑️ Удалить заказ
+                        </button>
                     `;
                 }
             }
