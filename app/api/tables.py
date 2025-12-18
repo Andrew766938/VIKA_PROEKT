@@ -54,10 +54,15 @@ def update_table(table_id: int, table_data: TableUpdate, db: Session = Depends(g
 @router.delete("/{table_id}")
 def delete_table(table_id: int, db: Session = Depends(get_db)):
     """Delete table"""
-    table = db.query(RestaurantTable).filter(RestaurantTable.id == table_id).first()
-    if not table:
-        raise HTTPException(status_code=404, detail="Table not found")
-    
-    db.delete(table)
-    db.commit()
-    return {"message": "Table deleted successfully"}
+    try:
+        table = db.query(RestaurantTable).filter(RestaurantTable.id == table_id).first()
+        if not table:
+            raise HTTPException(status_code=404, detail="Table not found")
+        
+        db.delete(table)
+        db.commit()
+        return {"message": "Table deleted successfully"}
+    except Exception as e:
+        db.rollback()
+        print(f"Error deleting table: {str(e)}")
+        raise HTTPException(status_code=400, detail=f"Error deleting table: {str(e)}")
