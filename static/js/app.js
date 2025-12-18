@@ -887,7 +887,7 @@ async function createOrder() {
     }
 }
 
-// CHEF: Orders with 3D Flip Animation
+// CHEF: Orders with 3D Flip Animation (SLOWER - 1000ms)
 async function loadOrders() {
     try {
         const response = await fetch(`${API_URL}/api/orders/`);
@@ -978,8 +978,8 @@ async function markOrderReady(orderId) {
             // Add flip animation
             orderCard.classList.add('flipping');
             
-            // Wait for animation to reach halfway (300ms of 600ms)
-            await new Promise(resolve => setTimeout(resolve, 300));
+            // Wait for animation to reach halfway (500ms of 1000ms)
+            await new Promise(resolve => setTimeout(resolve, 500));
         }
         
         const response = await fetch(`${API_URL}/api/orders/${orderId}`, {
@@ -993,7 +993,7 @@ async function markOrderReady(orderId) {
         }
 
         // Wait for the rest of animation
-        await new Promise(resolve => setTimeout(resolve, 300));
+        await new Promise(resolve => setTimeout(resolve, 500));
         
         alert('✅ Заказ отмечен как готовый!');
         loadOrders();
